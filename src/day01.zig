@@ -26,11 +26,11 @@ test "day1_part2" {
     assert(result == expected);
 }
 
-fn isDigit(c: u8) bool {
+inline fn isDigit(c: u8) bool {
     return c >= '0' and c <= '9';
 }
 
-fn part1(input: []const u8) u32 {
+inline fn part1(input: []const u8) u32 {
     var first: u8 = 10;
     var last: u8 = 10;
     var total: u32 = 0;
@@ -54,7 +54,7 @@ fn part1(input: []const u8) u32 {
 
 const numstrings: [10][]const u8 = .{ "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
 
-fn getDigit(chars: []const u8, index: usize) !u8 {
+inline fn getDigit(chars: []const u8, index: usize) !u8 {
     const c = chars[index];
     if (isDigit(c)) {
         return c - '0';
@@ -71,7 +71,7 @@ fn getDigit(chars: []const u8, index: usize) !u8 {
     return 10;
 }
 
-fn part2(input: []const u8) !u32 {
+inline fn part2(input: []const u8) !u32 {
     var first: u8 = 10;
     var last: u8 = 10;
     var total: u32 = 0;
@@ -95,10 +95,15 @@ fn part2(input: []const u8) !u32 {
 }
 
 pub fn main() !void {
+    var timer = try std.time.Timer.start();
     const result = part1(data);
-    print("Part1 result is {d}\n", .{result});
+    const time1 = timer.lap();
     const result2 = try part2(data);
+    const time2 = timer.read();
+    print("Part1 result is {d}\n", .{result});
+    print("Part1 took {d}ns\n", .{time1});
     print("Part2 result is {d}\n", .{result2});
+    print("Part2 took {d}ns\n", .{time2});
 }
 
 // Useful stdlib functions
