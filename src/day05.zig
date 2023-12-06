@@ -88,6 +88,8 @@ fn part1(input: []const u8) itype {
 test "day5_part2" {
     const res = part2(testdata);
     assert(res == 46);
+    const res2 = try part2threads(testdata);
+    assert(res2 == 46);
 }
 
 const Range = struct {
@@ -191,53 +193,35 @@ fn part2slowbruteforce(input: []const u8) itype {
     return lowest;
 }
 
-fn compSeedRange(min: itype, max: itype, maps: [10][100]MapRange, mapcounts: [10]u16, step: u8) itype {
+inline fn inrange(min: itype, max: itype, min2: itype, max2: itype) bool {
+    //return @max(min, min2) <= @min(max, max2);
+    return min <= max2 and min2 <= max;
+}
+
+fn compSeedRange(min: itype, max: itype, maps: [10][100]MapRange, mapcounts: [10]u16, step: u8, mapstep: u64) itype {
     const mapid = mapcounts[step];
-    if (step >= 9) {
+    if (step >= 8) {
         return min;
     }
-    for (maps[step][0..mapid]) |m| {
-        if (m.min <= min and m.max >= max) {
-            const xmin = m.dest + (min - m.min);
-            const xmax = xmin + (max - min);
-            return compSeedRange(xmin, xmax, maps, mapcounts, step + 1);
-        } else if (m.min >= min and m.min <= max) {
-            const xmin = m.min;
-            const xmax = @min(m.max, max);
-            const ymin = m.dest;
-            const ymax = ymin + (xmax - xmin);
-            var calced: itype = 0;
-            var lowest = compSeedRange(ymin, ymax, maps, mapcounts, step + 1);
-            calced += ymax - ymin + 1;
-            if (min < xmin) {
-                lowest = @min(lowest, compSeedRange(min, xmin - 1, maps, mapcounts, step));
-                calced += xmin - min;
+    if (mapid >= mapstep) {
+        for (maps[step][mapstep..mapid], mapstep..mapid) |m, mi| {
+            if (inrange(min, max, m.min, m.max)) {
+                const xmin = @max(m.min, min);
+                const xmax = @min(m.max, max);
+                const ymin = m.dest + (xmin - m.min);
+                const ymax = m.dest + (xmax - m.min);
+                var lowest = compSeedRange(ymin, ymax, maps, mapcounts, step + 1, 0);
+                if (min < xmin) {
+                    lowest = @min(lowest, compSeedRange(min, xmin - 1, maps, mapcounts, step, mi + 1));
+                }
+                if (max > xmax) {
+                    lowest = @min(lowest, compSeedRange(xmax + 1, max, maps, mapcounts, step, mi + 1));
+                }
+                return lowest;
             }
-            if (max > xmax) {
-                lowest = @min(lowest, compSeedRange(xmax + 1, max, maps, mapcounts, step));
-                calced += max - xmax;
-            }
-            return lowest;
-        } else if (m.max >= min and m.max <= max) {
-            const xmin = @max(m.min, min);
-            const xmax = m.max;
-            const ymax = m.dest + (m.max - m.min);
-            const ymin = ymax - (xmax - xmin);
-            var calced: itype = 0;
-            var lowest = compSeedRange(ymin, ymax, maps, mapcounts, step + 1);
-            calced += ymax - ymin + 1;
-            if (min < xmin) {
-                lowest = @min(lowest, compSeedRange(min, xmin - 1, maps, mapcounts, step));
-                calced += xmin - min;
-            }
-            if (max > xmax) {
-                lowest = @min(lowest, compSeedRange(xmax + 1, max, maps, mapcounts, step));
-                calced += max - xmax;
-            }
-            return lowest;
         }
     }
-    return compSeedRange(min, max, maps, mapcounts, step + 1);
+    return compSeedRange(min, max, maps, mapcounts, step + 1, 0);
 }
 
 fn part2(input: []const u8) itype {
@@ -294,9 +278,84 @@ fn part2(input: []const u8) itype {
     }
 
     var lowest: itype = std.math.maxInt(itype);
+    for (seeds[0..seed]) |range| {
+        lowest = @min(lowest, compSeedRange(range.min, range.max, maps, mapcounts, 0, 0));
+    }
+    return lowest;
+}
+
+/// Data holder for threaded part2 solution
+const Output = struct {
+    /// Actual value returned by thread
+    value: itype = 0,
+};
+
+fn compSeedThread(output: *Output, min: itype, max: itype, maps: [10][100]MapRange, mapcounts: [10]u16, step: u8, mapstep: u64) void {
+    output.value = compSeedRange(min, max, maps, mapcounts, step, mapstep);
+}
+
+fn part2threads(input: []const u8) !itype {
+    var seed: u8 = 0;
+    var seeds: [20]Range = undefined;
+    var step: i16 = -1;
+    var indigit: bool = false;
+    var current: itype = 0;
+    var map = [_]itype{0} ** 3;
+    var mapi: u8 = 0;
+    var mapcounts = [_]u16{0} ** 10;
+    var maps: [10][100]MapRange = undefined;
+    var hold: itype = 0;
+
+    for (input) |c| {
+        if (c == ':') {
+            step += 1;
+            continue;
+        }
+
+        if (isDigit(c)) {
+            indigit = true;
+            current = current * 10 + (c - '0');
+            continue;
+        } else if (indigit) {
+            indigit = false;
+            if (step == 0) {
+                if (hold == 0) {
+                    hold = current;
+                    current = 0;
+                } else {
+                    seeds[seed] = Range{ .min = hold, .max = hold + current - 1 };
+                    seed += 1;
+                    current = 0;
+                    hold = 0;
+                }
+            } else {
+                map[mapi] = current;
+                mapi += 1;
+                current = 0;
+            }
+        }
+
+        if (c == '\n') {
+            if (mapi == 3) {
+                const istep: usize = @intCast(step);
+                const mapid = mapcounts[istep];
+                maps[istep][mapid] = MapRange{ .dest = map[0], .min = map[1], .max = map[1] + map[2] - 1 };
+                mapcounts[istep] += 1;
+            }
+            mapi = 0;
+            continue;
+        }
+    }
+
+    var lowest: itype = std.math.maxInt(itype);
+    var threads: [20]std.Thread = undefined;
+    var outputs: [20]Output = undefined;
     for (seeds[0..seed], 0..) |range, i| {
-        _ = i;
-        lowest = @min(lowest, compSeedRange(range.min, range.max, maps, mapcounts, 0));
+        threads[i] = try std.Thread.spawn(.{}, compSeedThread, .{ &outputs[i], range.min, range.max, maps, mapcounts, 0, 0 });
+    }
+    for (0..seed) |i| {
+        threads[i].join();
+        lowest = @min(lowest, outputs[i].value);
     }
     return lowest;
 }
@@ -307,10 +366,14 @@ pub fn main() !void {
     const time1 = timer.lap();
     const res2 = part2(data);
     const time2 = timer.lap();
+    const res3 = try part2threads(data);
+    const time3 = timer.lap();
     print("Part1: {}\n", .{res});
     print("Part2: {}\n", .{res2});
+    print("Part2-th: {}\n", .{res3});
     print("Part1 took {}ns\n", .{time1});
     print("Part2 took {}ns\n", .{time2});
+    print("Part2-th took {}ns\n", .{time3});
 }
 
 // Useful stdlib functions
