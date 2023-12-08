@@ -29,7 +29,7 @@ inline fn waysToWin(time: usize, dist: usize) usize {
     var cap = time / 2;
     var lookahead: usize = undefined;
     while ((cap - t) >= 5) {
-        lookahead = (cap + t) / 2;
+        lookahead = (cap + t + cap) / 3;
         if (winner(lookahead, time, dist)) {
             cap = lookahead;
         } else {
@@ -116,6 +116,8 @@ pub fn main() !void {
     const time1 = timer.lap();
     const res2 = part2(data);
     const time2 = timer.lap();
+    const timebias = timer.lap();
+    print("Time bias: {}ns\n", .{timebias});
     print("Part1: {}\n", .{res});
     print("Part2: {}\n", .{res2});
     print("Part1 took {}ns\n", .{time1});
@@ -124,12 +126,12 @@ pub fn main() !void {
     var res3: usize = 0;
     const throw = timer.lap();
     _ = throw;
-    inline for (0..1000) |i| {
+    for (0..1000) |i| {
         _ = i;
         res3 = part1(data);
     }
     const time3 = timer.lap();
-    inline for (0..1000) |i| {
+    for (0..1000) |i| {
         _ = i;
         res3 = part2(data);
     }
