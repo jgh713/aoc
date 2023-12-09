@@ -79,23 +79,78 @@ const Loop = struct {
     length: u64,
 };
 
-inline fn getLoop(start: u16, map: [65535][2]u16, step: u16) Loop {
+inline fn getLoop(start: u16, map: [65535][2]u16, step: u16, steps: [310]u1) Loop {
     var offset: u64 = 0;
     var loc: u16 = start;
     var count: u32 = 0;
+    var hit: bool = false;
     while (true) {
-        loc = map[loc][(count % step)];
+        loc = map[loc][steps[(count % step)]];
         count += 1;
+        // const c1: u8 = @intCast((loc >> 10) & 0b11111);
+        // const c2: u8 = @intCast((loc >> 5) & 0b11111);
+        // const c3: u8 = @intCast(loc & 0b11111);
+        // print("Stepped to loc {c}{c}{c}.\n", .{ c1 + 'A', c2 + 'A', c3 + 'A' });
         if (loc & 0b11111 == 25) {
-            offset = count;
-        }
-        if (loc == start) {
-            return Loop{ .offset = offset, .length = count };
+            if (hit) {
+                return Loop{ .offset = offset, .length = count - offset };
+            } else {
+                offset = count;
+                hit = true;
+            }
         }
     }
 }
 
-fn part2(input: []const u8) u32 {
+fn gcd(ai: u64, bi: u64) u64 {
+    var a = ai;
+    var b = bi;
+    while (b != 0) {
+        const t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+fn lcm(a: u64, b: u64) u64 {
+    return (a / gcd(a, b)) * b;
+}
+
+inline fn mergeLoops(a: Loop, b: Loop) Loop {
+    var aloc = a.offset;
+    var bloc = b.offset;
+    var offset: u64 = 0;
+    while (true) {
+        if (aloc == bloc) {
+            offset = aloc;
+            return Loop{ .offset = offset, .length = lcm(a.length, b.length) };
+        }
+        if (aloc < bloc) {
+            aloc += a.length;
+        } else {
+            bloc += b.length;
+        }
+    }
+}
+
+inline fn mergeLoopsNoRecurse(a: Loop, b: Loop) u64 {
+    var aloc = a.offset;
+    var bloc = b.offset;
+    while (true) {
+        if (aloc == bloc) {
+            return aloc;
+        }
+        if (aloc < bloc) {
+            aloc += a.length;
+        } else {
+            bloc += b.length;
+        }
+    }
+}
+
+fn part2(input: []const u8) u64 {
+    var timer = std.time.Timer.start() catch unreachable;
     var step: u16 = 0;
     var steps: [310]u1 = undefined;
 
@@ -148,14 +203,31 @@ fn part2(input: []const u8) u32 {
         }
     }
 
+    const time = timer.lap();
+
     var loops: [10]Loop = undefined;
     for (0..node) |i| {
-        print("Node {}\n", .{i});
-        loops[i] = getLoop(nodes[i], map, step);
-        print("Got loop {} with offset {} and length {}\n", .{ i, loops[i].offset, loops[i].length });
+        loops[i] = getLoop(nodes[i], map, step, steps);
     }
 
-    return 0;
+    const time2 = timer.lap();
+
+    const merge1 = mergeLoops(loops[0], loops[1]);
+    const merge2 = mergeLoops(loops[2], loops[3]);
+    const merge3 = mergeLoops(loops[4], loops[5]);
+    const time3 = timer.lap();
+    const merge4 = mergeLoops(merge1, merge2);
+    const time4 = timer.lap();
+    const merge5 = mergeLoopsNoRecurse(merge3, merge4);
+    const time5 = timer.lap();
+
+    print("Time: {}ns\n", .{time});
+    print("Time2: {}ns\n", .{time2});
+    print("Time3: {}ns\n", .{time3});
+    print("Time4: {}ns\n", .{time4});
+    print("Time5: {}ns\n", .{time5});
+
+    return merge5;
 }
 
 pub fn main() !void {
