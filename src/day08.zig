@@ -149,7 +149,7 @@ inline fn mergeLoopsNoRecurse(a: Loop, b: Loop) u64 {
     }
 }
 
-fn part2(input: []const u8) u64 {
+fn part2robust(input: []const u8) u64 {
     var timer = std.time.Timer.start() catch unreachable;
     var step: u16 = 0;
     var steps: [310]u1 = undefined;
@@ -208,6 +208,7 @@ fn part2(input: []const u8) u64 {
     var loops: [10]Loop = undefined;
     for (0..node) |i| {
         loops[i] = getLoop(nodes[i], map, step, steps);
+        print("Loop {}: offset {}, length {}\n", .{ i, loops[i].offset, loops[i].length });
     }
 
     const time2 = timer.lap();
@@ -226,6 +227,86 @@ fn part2(input: []const u8) u64 {
     print("Time3: {}ns\n", .{time3});
     print("Time4: {}ns\n", .{time4});
     print("Time5: {}ns\n", .{time5});
+
+    return merge5;
+}
+
+inline fn getStepsToZ(start: u16, map: [65535][2]u16, step: u16, steps: [310]u1) u32 {
+    var loc: u16 = start;
+    var count: u32 = 0;
+    while (true) {
+        loc = map[loc][steps[(count % step)]];
+        count += 1;
+        if (loc & 0b11111 == 25) {
+            return count;
+        }
+    }
+}
+
+fn part2(input: []const u8) u64 {
+    var step: u16 = 0;
+    var steps: [310]u1 = undefined;
+
+    while (input[step] != '\n') {
+        step += 1;
+    }
+
+    if (input[step - 1] == '\r') {
+        step -= 1;
+    }
+
+    for (input[0..step], 0..) |c, i| {
+        steps[i] = switch (c) {
+            'L' => 0,
+            'R' => 1,
+            else => unreachable,
+        };
+    }
+
+    var current: u16 = 0;
+    var map: [65535][2]u16 = undefined;
+    var this: u16 = 0;
+    var left: u16 = 0;
+    var node: u4 = 0;
+    var nodes: [10]u16 = undefined;
+
+    for (input[step + 1 ..]) |c| {
+        switch (c) {
+            'A'...'Z' => {
+                current = (current << 5) | (c - 'A');
+            },
+            '(' => {
+                this = current;
+                current = 0;
+            },
+            ',' => {
+                left = current;
+                current = 0;
+            },
+            ')' => {
+                map[this][0] = left;
+                map[this][1] = current;
+                current = 0;
+                if (this & 0b11111 == 0) {
+                    nodes[node] = this;
+                    node += 1;
+                }
+            },
+            else => continue,
+        }
+    }
+
+    var lens: [10]u32 = undefined;
+
+    for (0..node) |i| {
+        lens[i] = getStepsToZ(nodes[i], map, step, steps);
+    }
+
+    const merge1 = lcm(lens[0], lens[1]);
+    const merge2 = lcm(lens[2], lens[3]);
+    const merge3 = lcm(lens[4], lens[5]);
+    const merge4 = lcm(merge1, merge2);
+    const merge5 = lcm(merge3, merge4);
 
     return merge5;
 }
