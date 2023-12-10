@@ -231,16 +231,14 @@ fn part2robust(input: []const u8) u64 {
     return merge5;
 }
 
-inline fn getStepsToZ(start: u16, map: [65535][2]u16, step: u16, steps: [310]u1) u32 {
+fn getStepsToZ(start: u16, map: [65535][2]u16, step: u16, steps: [310]u1) u32 {
     var loc: u16 = start;
     var count: u32 = 0;
-    while (true) {
+    while (loc & 0b11111 != 25) {
         loc = map[loc][steps[(count % step)]];
         count += 1;
-        if (loc & 0b11111 == 25) {
-            return count;
-        }
     }
+    return count;
 }
 
 fn part2(input: []const u8) u64 {
