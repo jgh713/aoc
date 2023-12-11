@@ -184,12 +184,15 @@ fn assignNodes(map: *[65536]WalkNode, node: *NodeStep, in_dir: dirs, nextdir: di
     }
 }
 
-fn part2(input: []const u8) u32 {
+fn part2overcomplicated(input: []const u8) u32 {
+    var timer = std.time.Timer.start() catch unreachable;
     var map: [65536]WalkNode = .{.{}} ** 65536;
 
     var x: u8 = 1;
     var y: u8 = 1;
     var start: u16 = 0;
+
+    const allocTime = timer.lap();
 
     for (input) |c| {
         switch (c) {
@@ -232,6 +235,8 @@ fn part2(input: []const u8) u32 {
         }
     }
 
+    const parseTime = timer.lap();
+
     var nodes: [2]NodeStep = undefined;
     var inode: u2 = 0;
 
@@ -250,6 +255,7 @@ fn part2(input: []const u8) u32 {
         }
     }
 
+    const adjTime = timer.lap();
     var steps: u32 = 1;
 
     while (nodes[0].node != nodes[1].node) {
@@ -267,6 +273,8 @@ fn part2(input: []const u8) u32 {
         }
     }
 
+    const loopTime = timer.lap();
+
     var pts: [65536]u16 = .{0} ** 65536;
     var ptc: u16 = 0;
     var pt: u16 = 0;
@@ -277,6 +285,8 @@ fn part2(input: []const u8) u32 {
             ptc += 1;
         }
     }
+
+    const ptcTime = timer.lap();
 
     while (pt < ptc) {
         const node = &map[pts[pt]];
@@ -300,6 +310,8 @@ fn part2(input: []const u8) u32 {
         pt += 1;
     }
 
+    const fillTime = timer.lap();
+
     const search = if (@intFromEnum(map[gps(149, 149)].type) == @intFromEnum(NodeType.left)) @intFromEnum(NodeType.right) else @intFromEnum(NodeType.left);
     var count: u32 = 0;
 
@@ -309,6 +321,138 @@ fn part2(input: []const u8) u32 {
         }
     }
 
+    const searchTime = timer.lap();
+
+    print("Alloc: {}ns\n", .{allocTime});
+    print("Parse: {}ns\n", .{parseTime});
+    print("Adj: {}ns\n", .{adjTime});
+    print("Loop: {}ns\n", .{loopTime});
+    print("PTC: {}ns\n", .{ptcTime});
+    print("Fill: {}ns\n", .{fillTime});
+    print("Search: {}ns\n", .{searchTime});
+
+    return count;
+}
+
+const QuickNode = struct { steps: [4]?dirs = .{null} ** 4, loop: bool = false };
+
+inline fn exists(step: ?dirs) bool {
+    const x = step orelse return false;
+    _ = x;
+    return true;
+}
+
+fn part2(input: []const u8) u32 {
+    var map: [65536]QuickNode = .{.{}} ** 65536;
+
+    var x: u8 = 1;
+    var y: u8 = 1;
+    var start: u16 = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '|' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.up)] = dirs.up;
+                map[gps(x, y)].steps[@intFromEnum(dirs.down)] = dirs.down;
+            },
+            '-' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.left)] = dirs.left;
+                map[gps(x, y)].steps[@intFromEnum(dirs.right)] = dirs.right;
+            },
+            'L' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.left)] = dirs.up;
+                map[gps(x, y)].steps[@intFromEnum(dirs.down)] = dirs.right;
+            },
+            'J' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.down)] = dirs.left;
+                map[gps(x, y)].steps[@intFromEnum(dirs.right)] = dirs.up;
+            },
+            'F' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.up)] = dirs.right;
+                map[gps(x, y)].steps[@intFromEnum(dirs.left)] = dirs.down;
+            },
+            '7' => {
+                map[gps(x, y)].steps[@intFromEnum(dirs.up)] = dirs.left;
+                map[gps(x, y)].steps[@intFromEnum(dirs.right)] = dirs.down;
+            },
+            'S' => {
+                start = gps(x, y);
+                map[start].loop = true;
+            },
+            else => {},
+        }
+
+        x += 1;
+        if (c == '\n') {
+            x = 1;
+            y += 1;
+        }
+    }
+
+    var nodes: [2]NodeStep = undefined;
+    var inode: u2 = 0;
+    var sdirs: [4]dirs = undefined;
+    var sdir: u4 = 0;
+
+    inline for (.{ dirs.up, dirs.right, dirs.down, dirs.left }) |dir| {
+        const next = gpstep(start, dir);
+        for (map[next].steps) |ostep| {
+            if (ostep) |step| {
+                if (gpstep(next, step) == start) {
+                    nodes[inode] = NodeStep{ .node = next, .step = dir };
+                    map[next].loop = true;
+                    inode += 1;
+                    sdirs[sdir] = oppDir(dir);
+                    sdirs[sdir + 1] = dir;
+                    sdir += 2;
+                    break;
+                }
+            }
+        }
+    }
+
+    map[start].steps[@intFromEnum(sdirs[0])] = sdirs[3];
+    map[start].steps[@intFromEnum(sdirs[2])] = sdirs[1];
+
+    var steps: u32 = 1;
+
+    while (nodes[0].node != nodes[1].node) {
+        steps += 1;
+        for (0..1) |i| {
+            var node = &nodes[i];
+            const nextdir = map[node.node].steps[@intFromEnum(node.step)].?;
+            const nextloc = gpstep(node.node, nextdir);
+            node.node = nextloc;
+            node.step = nextdir;
+            map[nextloc].loop = true;
+        }
+    }
+
+    var inloop: bool = false;
+    var loopcount: u32 = 0;
+    var count: u32 = 0;
+    var lastin: dirs = undefined;
+
+    for (map) |this| {
+        if (!this.loop) {
+            count += @intFromBool(inloop);
+            continue;
+        }
+
+        if (exists(this.steps[1])) {
+            if (!exists(this.steps[3])) {
+                const tdir = this.steps[1].?;
+                if (tdir == lastin) {
+                    inloop = !inloop;
+                }
+            }
+            continue;
+        }
+
+        lastin = this.steps[3] orelse lastin;
+        loopcount += 1;
+        inloop = !inloop;
+    }
     return count;
 }
 
