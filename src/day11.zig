@@ -12,11 +12,12 @@ const data = @embedFile("data/day11.txt");
 const testdata = "...#......\n.......#..\n#.........\n..........\n......#...\n.#........\n.........#\n..........\n.......#..\n#...#.....";
 
 test "day11" {
-    var res = day11(testdata, 2);
+    const galaxy = parseInput(testdata);
+    var res = day11(galaxy, 2);
     assert(res == 374);
-    res = day11(testdata, 10);
+    res = day11(galaxy, 10);
     assert(res == 1030);
-    res = day11(testdata, 100);
+    res = day11(galaxy, 100);
     assert(res == 8410);
 }
 
@@ -142,7 +143,13 @@ fn day11mid(input: []const u8, width: u32) u128 {
     return total;
 }
 
-fn day11(input: []const u8, width: u32) u128 {
+const Galaxy = struct {
+    count: u16,
+    cols: [140]u8,
+    rows: [140]u8,
+};
+
+fn parseInput(input: []const u8) Galaxy {
     var x: u8 = 0;
     var y: u8 = 0;
     var cols: [140]u8 = .{0} ** 140;
@@ -162,6 +169,14 @@ fn day11(input: []const u8, width: u32) u128 {
             x = 0;
         }
     }
+
+    return Galaxy{ .count = gcount, .cols = cols, .rows = rows };
+}
+
+fn day11(galaxy: Galaxy, width: u32) u128 {
+    const cols = galaxy.cols;
+    const rows = galaxy.rows;
+    const gcount = galaxy.count;
 
     var total: u128 = 0;
     var extras: u128 = 0;
@@ -193,12 +208,15 @@ fn day11(input: []const u8, width: u32) u128 {
 
 pub fn main() !void {
     var timer = try std.time.Timer.start();
-    const res = day11(data, 2);
+    const galaxy = parseInput(data);
+    const parsetime = timer.lap();
+    const res = day11(galaxy, 2);
     const time1 = timer.lap();
-    const res2 = day11(data, 1000000);
+    const res2 = day11(galaxy, 1000000);
     const time2 = timer.lap();
     print("Part 1: {}\n", .{res});
     print("Part 2: {}\n", .{res2});
+    print("Parse took {}ns\n", .{parsetime});
     print("Part1 took {}ns\n", .{time1});
     print("Part2 took {}ns\n", .{time2});
 }
