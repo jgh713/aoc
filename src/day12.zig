@@ -21,7 +21,7 @@ const Step = struct {
     known: bool,
 };
 
-fn calcMatches(linemap: []Step, linelen: u8, valmap: []u4, vals: u4) u32 {
+fn calcMatchesOld(linemap: []Step, linelen: u8, valmap: []u4, vals: u4) u32 {
     var matches: u32 = 0;
     var testmap: [32]u1 = undefined;
     var spacemap: u40 = 0;
@@ -77,7 +77,7 @@ fn calcMatches(linemap: []Step, linelen: u8, valmap: []u4, vals: u4) u32 {
 //     for (valmap) |val| {
 //         for (linemap) |
 
-fn part1(input: []const u8) u32 {
+fn part1slow(input: []const u8) u32 {
     var linemap: [32]Step = undefined;
     var linelen: u8 = 0;
     var current: u4 = 0;
@@ -112,7 +112,7 @@ fn part1(input: []const u8) u32 {
                 valmap[vals] = current;
                 vals += 1;
                 current = 0;
-                total += calcMatches(&linemap, linelen, &valmap, vals);
+                total += calcMatchesOld(&linemap, linelen, &valmap, vals);
                 line += 1;
                 print("{} lines processed.\n", .{line});
                 linelen = 0;
@@ -125,12 +125,197 @@ fn part1(input: []const u8) u32 {
     return total;
 }
 
+fn part1(input: []const u8) u128 {
+    var line: [150]Marker = undefined;
+    var linelen: u8 = 0;
+    var total: u128 = 0;
+    var blocks: [40]u4 = undefined;
+    var blocklen: u8 = 0;
+    var current: u4 = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '#' => {
+                line[linelen] = Marker.yes;
+                linelen += 1;
+            },
+            '.' => {
+                line[linelen] = Marker.no;
+                linelen += 1;
+            },
+            '?' => {
+                line[linelen] = Marker.unknown;
+                linelen += 1;
+            },
+            '0'...'9' => {
+                current = @intCast((current * 10) + (c - '0'));
+            },
+            ',' => {
+                blocks[blocklen] = current;
+                blocklen += 1;
+                current = 0;
+            },
+            '\n' => {
+                blocks[blocklen] = current;
+                blocklen += 1;
+
+                total += calcMatchesFast(line[0..linelen], blocks[0..blocklen]);
+                linelen = 0;
+                blocklen = 0;
+                current = 0;
+            },
+            else => {},
+        }
+    }
+    return total;
+}
+
+test "day12_part2" {
+    const res = part2(testdata);
+    assert(res == 525152);
+}
+
+const Marker = enum { yes, no, unknown };
+
+fn walkLine(linemap: []Marker, blockmap: []u4, fitmap: [16][150]bool, walkmap: *[40][150]?usize, offset: u8, block: u8, lastyes: u8) usize {
+    if (offset > linemap.len) return 0;
+    const nextyes = for (offset..linemap.len) |i| {
+        if (linemap[i] == Marker.yes) {
+            break i;
+        }
+    } else linemap.len;
+    const width: u4 = blockmap[block];
+
+    var total: usize = 0;
+
+    for (offset..nextyes + 1) |pos| {
+        if (!fitmap[width][pos]) continue;
+
+        const nextblock: u8 = block + 1;
+        if (nextblock == blockmap.len) {
+            const end = pos + width;
+            if (end >= lastyes) {
+                total += 1;
+            }
+        } else {
+            const nextoffset: u8 = @intCast(pos + width + 1);
+
+            if (walkmap[nextblock][nextoffset]) |walkval| {
+                total += walkval;
+            } else {
+                const walkval = walkLine(linemap, blockmap, fitmap, walkmap, nextoffset, nextblock, lastyes);
+                walkmap[nextblock][nextoffset] = walkval;
+                total += walkval;
+            }
+        }
+    }
+
+    return total;
+}
+
+fn calcMatchesFast(linemap: []Marker, blockmap: []u4) u64 {
+    var fitmap: [16][150]bool = .{.{false} ** 150} ** 16;
+    var walkmap: [40][150]?usize = .{.{null} ** 150} ** 40;
+
+    var lastyes: u8 = 0;
+    for (0..linemap.len) |offset| {
+        if (linemap[offset] == Marker.yes) {
+            lastyes = @intCast(offset);
+        }
+    }
+
+    for (0..linemap.len) |offset| {
+        if (offset != 0 and linemap[offset - 1] == Marker.yes) continue;
+
+        for (0..15) |width| {
+            if (offset + width > linemap.len) break;
+            if ((offset + width) < linemap.len and linemap[offset + width] == Marker.no) break;
+            const next = offset + width + 1;
+            if (next == linemap.len or linemap[next] == Marker.no or linemap[next] == Marker.unknown) {
+                fitmap[width + 1][offset] = true;
+            }
+            if (next == linemap.len) break;
+        }
+    }
+
+    return walkLine(linemap, blockmap, fitmap, &walkmap, 0, 0, lastyes);
+}
+
+fn part2(input: []const u8) u128 {
+    var line: [150]Marker = undefined;
+    var linelen: u8 = 0;
+    var total: u128 = 0;
+    var blocks: [40]u4 = undefined;
+    var blocklen: u8 = 0;
+    var current: u4 = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '#' => {
+                line[linelen] = Marker.yes;
+                linelen += 1;
+            },
+            '.' => {
+                line[linelen] = Marker.no;
+                linelen += 1;
+            },
+            '?' => {
+                line[linelen] = Marker.unknown;
+                linelen += 1;
+            },
+            ' ' => {
+                var i: u8 = linelen;
+                for (0..4) |_| {
+                    line[i] = Marker.unknown;
+                    i += 1;
+                    for (0..linelen) |j| {
+                        line[i] = line[j];
+                        i += 1;
+                    }
+                }
+                linelen = i;
+            },
+            '0'...'9' => {
+                current = @intCast((current * 10) + (c - '0'));
+            },
+            ',' => {
+                blocks[blocklen] = current;
+                blocklen += 1;
+                current = 0;
+            },
+            '\n' => {
+                blocks[blocklen] = current;
+                blocklen += 1;
+                var i: u8 = blocklen;
+                for (0..4) |_| {
+                    for (0..blocklen) |j| {
+                        blocks[i] = blocks[j];
+                        i += 1;
+                    }
+                }
+                blocklen = i;
+
+                total += calcMatchesFast(line[0..linelen], blocks[0..blocklen]);
+                linelen = 0;
+                blocklen = 0;
+                current = 0;
+            },
+            else => {},
+        }
+    }
+    return total;
+}
+
 pub fn main() !void {
     var timer = try std.time.Timer.start();
     const res = part1(data);
     const time1 = timer.lap();
+    const res2 = part2(data);
+    const time2 = timer.lap();
     print("Part 1: {}\n", .{res});
+    print("Part 2: {}\n", .{res2});
     print("Part1 took {}ns\n", .{time1});
+    print("Part2 took {}ns\n", .{time2});
 }
 
 // Useful stdlib functions
