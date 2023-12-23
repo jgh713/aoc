@@ -25,7 +25,9 @@ fn calcMirrors(map: [20][20]bool, maxy: u5, maxx: u5) usize {
         print("Pre-row {b}\n", .{int});
         for (0..maxx) |x| {
             print("x: {}, y: {}\n", .{ x, y });
-            print("Bool from map: {}\n", .{@intFromBool(map[y][x])});
+            print("Bool-int from map: {}\n", .{@intFromBool(map[y][x])});
+            print("Bool-bits from map: {b}\n", .{@intFromBool(map[y][x])});
+            print("As-bits from map: {b}\n", .{@as(u20, @intFromBool(map[y][x]))});
             print("Offset int: {b}\n", .{@as(u20, @intFromBool(map[y][x])) << @intCast(x)});
             int |= @as(u20, @intFromBool(map[y][x])) << @intCast(x);
             print("Int: {b}\n", .{int});
