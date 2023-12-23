@@ -10,6 +10,7 @@ const gpa = util.gpa;
 
 const data = @embedFile("data/day12.txt");
 const testdata = "???.### 1,1,3\n.??..??...?##. 1,1,3\n?#?#?#?#?#?#?#? 1,3,1,6\n????.#...#... 4,1,1\n????.######..#####. 1,6,5\n?###???????? 3,2,1\n";
+const cloudzytest = "???#?????? 4,4\n??..#??#??.???? 5,1\n?.?.???????##????? 1,2,8\n.#????.????#?????? 2,1,1,2,1,1\n??????#????...#?... 9,1\n.???.?????. 3,1,1\n??..?..???. 1,1\n??.??.#..?..??###?? 2,1,1,1,6\n????.???## 3,1,3\n???#?###?#?#.??? 1,1,7,1,1\n??.#?#???#.????????? 7,6\n???#?#.??##?????? 3,1,6\n????##???#????#?#?? 6,8,1\n??#????#?? 5,1\n?##?#??#??????##?.#? 10,5,2\n..???..?##???..?? 1,5,1\n.?.#???.??? 3,2\n?????#?#.???.?.?###? 1,4,1,5\n?##.??#..?????????? 3,3,3,1,1\n?#???.#?????##??? 2,1,2,4,1";
 
 test "day12_part1" {
     const res = part1(testdata);
@@ -306,7 +307,60 @@ fn part2(input: []const u8) u128 {
     return total;
 }
 
+fn generate_test_cases(len: u4) !void {
+    const cap = std.math.pow(u32, 3, len);
+    var i: u32 = 0;
+    var buffer: [1000]u8 = undefined;
+    const cwd = std.fs.cwd();
+    const outfile = try cwd.createFile("day12_examples.txt", .{ .truncate = true });
+    defer outfile.close();
+    var linemap: [32]Marker = undefined;
+    var line: u8 = 0;
+    var blockmap: [8]u4 = undefined;
+    var block: u4 = 0;
+
+    for (0..3) |bi| {
+        blockmap[bi] = 1;
+        block += 1;
+    }
+
+    while (i < cap) : (i += 1) {
+        buffer = std.mem.zeroes([1000]u8);
+        var map: u32 = i;
+        for (0..len) |j| {
+            _ = j;
+            const this = map % 3;
+            map /= 3;
+            switch (this) {
+                0 => {
+                    _ = try outfile.write("?");
+                    linemap[line] = Marker.unknown;
+                    line += 1;
+                },
+                1 => {
+                    _ = try outfile.write(".");
+                    linemap[line] = Marker.no;
+                    line += 1;
+                },
+                2 => {
+                    _ = try outfile.write("#");
+                    linemap[line] = Marker.yes;
+                    line += 1;
+                },
+                else => unreachable,
+            }
+        }
+        _ = try outfile.write(" 1,1,1=");
+        const res = calcMatchesFast(linemap[0..line], blockmap[0..block]);
+        _ = try outfile.write(try bufPrint(&buffer, "{}\n", .{res}));
+        const end = std.mem.indexOfScalar(u8, &buffer, @as(u8, 0)) orelse unreachable;
+        _ = end;
+        line = 0;
+    }
+}
+
 pub fn main() !void {
+    //try generate_test_cases(7);
     var timer = try std.time.Timer.start();
     const res = part1(data);
     const time1 = timer.lap();
@@ -339,6 +393,7 @@ const parseInt = std.fmt.parseInt;
 const parseFloat = std.fmt.parseFloat;
 
 const print = std.debug.print;
+const bufPrint = std.fmt.bufPrint;
 const assert = std.debug.assert;
 
 const sort = std.sort.block;
