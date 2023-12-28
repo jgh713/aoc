@@ -19,69 +19,60 @@ test "day13_part1" {
 fn calcMirrors(map: [20][20]bool, maxy: u5, maxx: u5) usize {
     var rows: [20]u20 = undefined;
     var cols: [20]u20 = undefined;
-    print("Maxx: {}, Maxy: {}\n", .{ maxx, maxy });
+
     for (0..maxy) |y| {
-        var int: u20 = 0;
-        print("Pre-row {b}\n", .{int});
+        var int: u20 = @as(u20, 1) << maxx;
         for (0..maxx) |x| {
-            print("x: {}, y: {}\n", .{ x, y });
-            print("Bool-int from map: {}\n", .{@intFromBool(map[y][x])});
-            print("Bool-bits from map: {b}\n", .{@intFromBool(map[y][x])});
-            print("As-bits from map: {b}\n", .{@as(u20, @intFromBool(map[y][x]))});
-            print("Offset int: {b}\n", .{@as(u20, @intFromBool(map[y][x])) << @intCast(x)});
             int |= @as(u20, @intFromBool(map[y][x])) << @intCast(x);
-            print("Int: {b}\n", .{int});
         }
         rows[y] = int;
-        print("Row {}: {b}\n", .{ y, int });
     }
 
     for (0..maxx) |x| {
-        var int: u20 = 0;
+        var int: u20 = @as(u20, 1) << maxy;
         for (0..maxy) |y| {
             int = int | (@as(u20, @intFromBool(map[y][x])) << @intCast(y));
         }
         cols[x] = int;
-        print("Col {}: {b}\n", .{ x, int });
     }
 
     var total: usize = 0;
-    for (1..(maxx - 1)) |startx| {
-        var left: u5 = @intCast(startx);
-        var right: u5 = @intCast(startx);
-        const hit = while (true) {
-            if (left == 0 or right == (maxx)) {
-                break true;
-            }
-            left -= 1;
-            right += 1;
-            if (rows[left] != rows[right]) {
-                break false;
-            }
-        };
-        if (hit) {
-            total += startx;
-        }
-    }
 
-    for (1..(maxy - 1)) |starty| {
+    for (1..(maxy)) |starty| {
         var top: u5 = @intCast(starty);
-        var bottom: u5 = @intCast(starty);
-        const hit = while (true) {
-            if (top == 0 or bottom == (maxy)) {
-                break true;
+        var bottom: u5 = @intCast(starty - 1);
+        const hit = hit: while (true) {
+            if (top == 0 or bottom == (maxy - 1)) {
+                break :hit true;
             }
             top -= 1;
             bottom += 1;
-            if (cols[top] != cols[bottom]) {
-                break false;
+            if (rows[top] != rows[bottom]) {
+                break :hit false;
             }
         };
         if (hit) {
             total += (100 * starty);
         }
     }
-    print("Total: {}\n", .{total});
+
+    for (1..(maxx)) |startx| {
+        var left: u5 = @intCast(startx);
+        var right: u5 = @intCast(startx - 1);
+        const hit = hit: while (true) {
+            if (left == 0 or right == (maxx - 1)) {
+                break :hit true;
+            }
+            left -= 1;
+            right += 1;
+            if (cols[left] != cols[right]) {
+                break :hit false;
+            }
+        };
+        if (hit) {
+            total += startx;
+        }
+    }
     return total;
 }
 
@@ -97,11 +88,11 @@ fn part1(input: []const u8) usize {
         switch (c) {
             '\n' => {
                 if (x > 0) {
-                    maxx = x + 1;
+                    maxx = x;
                     x = 0;
                     y += 1;
                 } else {
-                    total += calcMirrors(map, y + 1, maxx);
+                    total += calcMirrors(map, y, maxx);
                     x = 0;
                     y = 0;
                 }
@@ -118,7 +109,13 @@ fn part1(input: []const u8) usize {
     return total;
 }
 
-pub fn main() !void {}
+pub fn main() !void {
+    var timer = try std.time.Timer.start();
+    const res = part1(data);
+    const time1 = timer.lap();
+    print("Part1: {}\n", .{res});
+    print("Part1 took {}ns\n", .{time1});
+}
 
 // Useful stdlib functions
 const tokenizeAny = std.mem.tokenizeAny;
