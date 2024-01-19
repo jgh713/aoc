@@ -132,8 +132,11 @@ fn part1(input: []const u8, steps: u8) usize {
 }
 
 test "day21_part2" {
-    const res = part2(data);
+    const res = part2(testdata, 49, 5, 11);
+    _ = part2old(data);
+    const res2 = part2manualish();
     print("Res is {}\n", .{res});
+    print("Res2 is {}\n", .{res2});
 }
 
 fn neighbors16(x: u16, y: u16, maxx: u16, maxy: u16) [4]?[2]u16 {
@@ -153,7 +156,7 @@ fn neighbors16(x: u16, y: u16, maxx: u16, maxy: u16) [4]?[2]u16 {
     return res;
 }
 
-fn part2(input: []const u8) usize {
+fn part2old(input: []const u8) usize {
     var basemap: [131][131]Tile = std.mem.zeroes([131][131]Tile);
     var x: u8 = 0;
     var y: u8 = 0;
@@ -182,11 +185,14 @@ fn part2(input: []const u8) usize {
     }
 
     maxx = x;
-    maxy = y;
+    maxy = y + 1;
 
-    const mult = 11;
+    print("maxx {}, maxy {}\n", .{ maxx, maxy });
 
-    var map: [132 * mult][132 * mult]Tile = undefined;
+    const mult = 75;
+
+    var map: [][132 * mult]Tile = gpa.alloc([132 * mult]Tile, 132 * mult) catch unreachable;
+    defer gpa.free(map);
     for (0..mult) |iy| {
         for (0..mult) |ix| {
             for (0..maxy) |my| {
@@ -197,8 +203,8 @@ fn part2(input: []const u8) usize {
         }
     }
 
-    sx = sx + 5 * maxx;
-    sy = sy + 5 * maxy;
+    sx = sx + 37 * maxx;
+    sy = sy + 37 * maxy;
 
     maxx = mult * maxx;
     maxy = mult * maxy;
@@ -211,8 +217,7 @@ fn part2(input: []const u8) usize {
     qlen += 1;
 
     var counts: [2]u32 = .{0} ** 2;
-    var solves: [3]f64 = .{0} ** 3;
-    var last: usize = 0;
+    var solves: [4]f64 = .{0} ** 4;
 
     outerwhile: while (true) {
         var nlen: u16 = 0;
@@ -236,15 +241,33 @@ fn part2(input: []const u8) usize {
                 }
             }
         }
-        step += 1;
-        if (step >= 65) {
-            if ((step - 65) % 131 == 0) {
-                const diff = counts[step % 2] - last;
-                print("Step {}, counts {}\n", .{ step, counts[step % 2] });
-                print("Diff {}\n", .{diff});
-                last = counts[step % 2];
-            }
+        if (step == 6 or step == 10 or step == 50 or step == 100) {
+            //print("Step {}, counts {any}\n", .{ step, counts });
         }
+        if (step == (65)) {
+            print("Step {}, counts {any} total {}\n", .{ step, counts, counts[0] + counts[1] });
+            solves[0] = @floatFromInt(counts[0] + counts[1]);
+        }
+        if (step == 65 + 131) {
+            print("Step {}, counts {any} total {}\n", .{ step, counts, counts[0] + counts[1] });
+            solves[1] = @floatFromInt(counts[0] + counts[1]);
+        }
+        if (step == 65 + 2 * 131) {
+            print("Step {}, counts {any} total {}\n", .{ step, counts, counts[0] + counts[1] });
+            solves[2] = @floatFromInt(counts[0] + counts[1]);
+        }
+        if (step == 65 + 3 * 131) {
+            print("Step {}, counts {any} total {}\n", .{ step, counts, counts[0] + counts[1] });
+            break;
+        }
+
+        if (step % 2 == 1) {
+            //print("{} / {} = {}\n", .{ counts[0] + counts[1], counts[0], @as(f64, @floatFromInt(counts[0] + counts[1])) / @as(f64, @floatFromInt(counts[0])) });
+        }
+        if (step == 49) {
+            print("Step {}, counts {any} total {}\n", .{ step, counts, counts[0] + counts[1] });
+        }
+        step += 1;
         if (step > 1000) {
             solves[0] = 0;
             break :outerwhile;
@@ -271,15 +294,94 @@ fn part2(input: []const u8) usize {
     const x1: i64 = @intFromFloat(d1 / da);
     const x2: i64 = @intFromFloat(d2 / da);
 
+    print("x0 {}, x1 {}, x2 {}\n", .{ x0, x1, x2 });
+
     return @intCast(x0 * n * n + x1 * n + x2);
+}
+
+fn part2manualish() usize {
+    const steps: [4]f64 = .{ 65, 196, 327, 458 };
+    const totals: [4]f64 = .{ 3917, 34628, 96829, 188962 };
+    //print("totals: {any}\n", .{totals});
+    //const diffs: [3]usize = .{ totals[1] - totals[0], totals[2] - totals[1], totals[3] - totals[2] };
+    //print("diffs: {any}\n", .{diffs});
+    //const diffdiffs: [2]usize = .{ diffs[1] - diffs[0], diffs[2] - diffs[1] };
+    //print("diffdiffs: {any}\n", .{diffdiffs});
+    //
+    //var step: usize = 458;
+    //var total: usize = 378606;
+    //var diff: usize = 185435;
+    //const diffdiff: usize = 61812;
+    const target: f64 = 26501365;
+    //
+    //while (step < target) {
+    //    step += 131;
+    //    diff += diffdiff;
+    //    total += diff;
+    //}
+    //
+    //print("Step {}, total {}\n", .{ step, total });
+
+    // Lagrange maybe?
+
+    var result: f64 = 0;
+    for (0..3) |i| {
+        var term: f64 = totals[i];
+        for (0..3) |j| {
+            if (i != j) {
+                const num: f64 = target - steps[j];
+                const den: f64 = steps[i] - steps[j];
+                term *= num / den;
+            }
+        }
+        result += term;
+    }
+
+    print("Result: {}\n", .{result});
+
+    return @intFromFloat(result);
+}
+
+fn part2(input: []const u8, steps: usize, half: u8, full: u8) usize {
+    const halfval = part1(input, half);
+    const fullval = part1(input, full + 100);
+
+    const squaresteps = (steps - half) / full;
+
+    var fullsquare_count: usize = 1;
+    var mod: usize = 0;
+    var step: usize = 1;
+
+    while (step < squaresteps) {
+        mod += 4;
+        fullsquare_count += mod;
+        step += 1;
+    }
+
+    const fullcount = fullsquare_count * fullval;
+
+    const halfcount = (mod + 4);
+    const halfsteps = (halfcount / 2) * fullval;
+
+    const total = fullcount + halfsteps + (steps * 2);
+
+    print("halfval {}, fullval {}, squaresteps {}, fullsquare_count {}, mod {}, fullcount {}, halfcount {}, halfsteps {}, total {}\n", .{ halfval, fullval, squaresteps, fullsquare_count, mod, fullcount, halfcount, halfsteps, total });
+
+    return total;
 }
 
 pub fn main() !void {
     var timer = try std.time.Timer.start();
     const res = part1(data, 64);
     const time = timer.lap();
+    // const res2 = 644371718675717;
+    const res2 = 632421652138916;
+    const time2 = "way too damn long";
+    // Honestly gave up on part2 and solved it by hand.
     print("Part1: {}\n", .{res});
+    print("Part2: {}\n", .{res2});
     print("Part1 took {}ns\n", .{time});
+    print("Part2 took {}ns\n", .{time2});
 }
 
 // Useful stdlib functions
