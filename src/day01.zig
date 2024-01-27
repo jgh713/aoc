@@ -10,7 +10,7 @@ const gpa = util.gpa;
 
 const testdata = "1abc2\npqr3stu8vwx\na1b2c3d4e5f\ntreb7uchet";
 const testdata2 = "two1nine\neightwothree\nabcone2threexyz\nxtwone3four\n4nineeightseven2\nzoneight234\n7pqrstsixteen";
-const data = @embedFile("data/day01.txt");
+pub const data = @embedFile("data/day01.txt");
 
 test "day1_part1" {
     const input = testdata;
@@ -30,7 +30,7 @@ inline fn isDigit(c: u8) bool {
     return c >= '0' and c <= '9';
 }
 
-inline fn part1(input: []const u8) u32 {
+pub inline fn part1(input: []const u8) u32 {
     var first: u8 = 10;
     var last: u8 = 10;
     var total: u32 = 0;
@@ -71,7 +71,7 @@ inline fn getDigit(chars: []const u8, index: usize) !u8 {
     return 10;
 }
 
-inline fn part2(input: []const u8) !u32 {
+pub inline fn part2(input: []const u8) !u32 {
     var first: u8 = 10;
     var last: u8 = 10;
     var total: u32 = 0;

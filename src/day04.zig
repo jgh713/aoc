@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day04.txt");
+pub const data = @embedFile("data/day04.txt");
 const testdata = "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53\nCard 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19\nCard 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1\nCard 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83\nCard 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36\nCard 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
 
 test "day4_test1" {
@@ -24,7 +24,7 @@ inline fn isDigit(x: u8) bool {
     return x >= '0' and x <= '9';
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var total: usize = 0;
     var step = steps.id;
     var current: u8 = 0;
@@ -151,7 +151,7 @@ test "day4_part2" {
     assert(result == 30);
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var total: usize = 0;
     var step = steps.id;
     var current: u8 = 0;

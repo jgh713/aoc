@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day02.txt");
+pub const data = @embedFile("data/day02.txt");
 const testinput = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green\nGame 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue\nGame 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red\nGame 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red\nGame 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green";
 
 test "day2_part1" {
@@ -16,7 +16,7 @@ test "day2_part1" {
     assert(x == 8);
 }
 
-fn part1(input: []const u8) !usize {
+pub fn part1(input: []const u8) !usize {
     var it_line = splitSca(u8, input, '\n');
     var total: usize = 0;
     while (it_line.next()) |line| {
@@ -50,7 +50,7 @@ fn part1(input: []const u8) !usize {
     return total;
 }
 
-fn part2(input: []const u8) !usize {
+pub fn part2(input: []const u8) !usize {
     var it_line = splitSca(u8, input, '\n');
     var total: usize = 0;
     while (it_line.next()) |line| {

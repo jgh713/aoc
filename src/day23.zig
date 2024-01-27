@@ -12,7 +12,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day23.txt");
+pub const data = @embedFile("data/day23.txt");
 const testdata = "#.#####################\n#.......#########...###\n#######.#########.#.###\n###.....#.>.>.###.#.###\n###v#####.#v#.###.#.###\n###.>...#.#.#.....#...#\n###v###.#.#.#########.#\n###...#.#.#.......#...#\n#####.#.#.#######.#.###\n#.....#.#.#.......#...#\n#.#####.#.#.#########v#\n#.#...#...#...###...>.#\n#.#.#v#######v###.###v#\n#...#.>.#...>.>.#.###.#\n#####v#.#.###v#.#.###.#\n#.....#...#...#.#.#...#\n#.#########.###.#.#.###\n#...###...#...#...#.###\n###.###.#.###v#####v###\n#...#...#.#.>.>.#.>.###\n#.###.###.#.###.#.#v###\n#.....###...###...#...#\n#####################.#";
 
 test "day23_part1" {
@@ -258,7 +258,7 @@ const Map = struct {
     }
 
     pub fn rawWalk(self: *Map) usize {
-        var steps: [141 * 141][2]u8 = std.mem.zeroes([141 * 141][2]u8);
+        var steps: [141 * 141][2]u8 = comptime std.mem.zeroes([141 * 141][2]u8);
         const sx = @as(u8, @truncate(self.startx));
         const sy = @as(u8, @truncate(self.starty));
         steps[0] = .{ sx, sy };
@@ -389,7 +389,7 @@ const Node = struct {
     y: u8,
 };
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var map: Map = undefined;
 
     map.build(input);
@@ -407,7 +407,7 @@ test "day23_part2" {
     assert(res == 154);
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var map: Map = undefined;
 
     map.build(input);

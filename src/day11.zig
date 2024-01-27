@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day11.txt");
+pub const data = @embedFile("data/day11.txt");
 const testdata = "...#......\n.......#..\n#.........\n..........\n......#...\n.#........\n.........#\n..........\n.......#..\n#...#.....";
 
 test "day11" {
@@ -29,8 +29,8 @@ const Loc = struct {
 fn day11slow(input: []const u8, width: u32) u128 {
     var x: u8 = 0;
     var y: u8 = 0;
-    var cols: [140]bool = .{false} ** 140;
-    var rows: [140]bool = .{false} ** 140;
+    var cols: [140]bool = [1]bool{false} ** 140;
+    var rows: [140]bool = [1]bool{false} ** 140;
     var galaxies: [450]Loc = undefined;
     var galaxy: u16 = 0;
 
@@ -85,8 +85,8 @@ fn day11slow(input: []const u8, width: u32) u128 {
 fn day11mid(input: []const u8, width: u32) u128 {
     var x: u8 = 0;
     var y: u8 = 0;
-    var cols: [140]u8 = .{0} ** 140;
-    var rows: [140]u8 = .{0} ** 140;
+    var cols: [140]u8 = [1]u8{0} ** 140;
+    var rows: [140]u8 = [1]u8{0} ** 140;
 
     for (input) |c| {
         switch (c) {
@@ -149,11 +149,11 @@ const Galaxy = struct {
     rows: [140]u8,
 };
 
-fn parseInput(input: []const u8) Galaxy {
+pub fn parseInput(input: []const u8) Galaxy {
     var x: u8 = 0;
     var y: u8 = 0;
-    var cols: [140]u8 = .{0} ** 140;
-    var rows: [140]u8 = .{0} ** 140;
+    var cols: [140]u8 = [1]u8{0} ** 140;
+    var rows: [140]u8 = [1]u8{0} ** 140;
     var gcount: u16 = 0;
 
     for (input) |c| {
@@ -173,7 +173,7 @@ fn parseInput(input: []const u8) Galaxy {
     return Galaxy{ .count = gcount, .cols = cols, .rows = rows };
 }
 
-fn day11(galaxy: Galaxy, width: u32) u128 {
+pub fn day11(galaxy: Galaxy, width: u32) u128 {
     const cols = galaxy.cols;
     const rows = galaxy.rows;
     const gcount = galaxy.count;

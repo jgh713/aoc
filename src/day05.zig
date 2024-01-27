@@ -10,7 +10,7 @@ const gpa = util.gpa;
 
 const itype = u64;
 
-const data = @embedFile("data/day05.txt");
+pub const data = @embedFile("data/day05.txt");
 const testdata = "seeds: 79 14 55 13\n\nseed-to-soil map:\n50 98 2\n52 50 48\n\nsoil-to-fertilizer map:\n0 15 37\n37 52 2\n39 0 15\n\nfertilizer-to-water map:\n49 53 8\n0 11 42\n42 0 7\n57 7 4\n\nwater-to-light map:\n88 18 7\n18 25 70\n\nlight-to-temperature map:\n45 77 23\n81 45 19\n68 64 13\n\ntemperature-to-humidity map:\n0 69 1\n1 0 69\n\nhumidity-to-location map:\n60 56 37\n56 93 4\n";
 
 test "day5_test1" {
@@ -27,7 +27,7 @@ inline fn isDigit(c: u8) bool {
     return c >= '0' and c <= '9';
 }
 
-fn part1(input: []const u8) itype {
+pub fn part1(input: []const u8) itype {
     var seed: u8 = 0;
     var seeds = [_]Seed{.{ .value = 0, .step = 0 }} ** 20;
     var step: i16 = -1;
@@ -224,7 +224,7 @@ fn compSeedRange(min: itype, max: itype, maps: [10][100]MapRange, mapcounts: [10
     return compSeedRange(min, max, maps, mapcounts, step + 1, 0);
 }
 
-fn part2(input: []const u8) itype {
+pub fn part2(input: []const u8) itype {
     var seed: u8 = 0;
     var seeds: [20]Range = undefined;
     var step: i16 = -1;

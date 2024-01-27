@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day13.txt");
+pub const data = @embedFile("data/day13.txt");
 const testdata = "#.##..##.\n..#.##.#.\n##......#\n##......#\n..#.##.#.\n..##..##.\n#.#.##.#.\n\n#...##..#\n#....#..#\n..##..###\n#####.##.\n#####.##.\n..##..###\n#....#..#\n\n";
 
 test "day13_part1" {
@@ -76,7 +76,7 @@ fn calcMirrors(map: [20][20]bool, maxy: u5, maxx: u5) usize {
     return total;
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var x: u5 = 0;
     var y: u5 = 0;
     var maxx: u5 = 0;
@@ -174,7 +174,7 @@ fn calcSmudges(map: [20][20]bool, maxy: u5, maxx: u5) usize {
     return total;
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var x: u5 = 0;
     var y: u5 = 0;
     var maxx: u5 = 0;

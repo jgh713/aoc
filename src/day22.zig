@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day22.txt");
+pub const data = @embedFile("data/day22.txt");
 const testdata = "1,0,1~1,2,1\n0,0,2~2,0,2\n0,2,3~2,2,3\n0,0,4~0,2,4\n2,0,5~2,2,5\n0,1,6~2,1,6\n1,1,8~1,1,9";
 
 test "day22_part1" {
@@ -249,7 +249,7 @@ fn createGrid(coords: [][2][3]usize, maxes: [3]usize) Grid {
     return grid;
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     const rindex = indexOf(u8, input, '\r');
     var lineit = splitSeq(u8, input, if (rindex) |_| "\r\n" else "\n");
     var maxes: [3]usize = .{ 0, 0, 0 };
@@ -298,7 +298,7 @@ test "day22_part2" {
     assert(res == 7);
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     const rindex = indexOf(u8, input, '\r');
     var lineit = splitSeq(u8, input, if (rindex) |_| "\r\n" else "\n");
     var maxes: [3]usize = .{ 0, 0, 0 };

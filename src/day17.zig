@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day17.txt");
+pub const data = @embedFile("data/day17.txt");
 const testdata = "2413432311323\n3215453535623\n3255245654254\n3446585845452\n4546657867536\n1438598798454\n4457876987766\n3637877979653\n4654967986887\n4564679986453\n1224686865563\n2546548887735\n4322674655533";
 const testdata2 = "111111111111\n999999999991\n999999999991\n999999999991\n999999999991";
 
@@ -96,7 +96,7 @@ fn dijkstra(maxx: u8, maxy: u8, weightmap: [142][142]u4, min_steps: u8, max_step
     unreachable;
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var map: [142][142]u4 = undefined;
     var x: u8 = 0;
     var y: u8 = 0;
@@ -128,7 +128,7 @@ test "day17_part2" {
     assert(res2 == 71);
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var map: [142][142]u4 = undefined;
     var x: u8 = 0;
     var y: u8 = 0;

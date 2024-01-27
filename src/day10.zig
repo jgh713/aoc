@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day10.txt");
+pub const data = @embedFile("data/day10.txt");
 const testdata = "-L|F7\n7S-7|\nL|7||\n-L-J|\nL|-JF";
 const testdata2 = "FF7FSF7F7F7F7F7F---7\nL|LJ||||||||||||F--J\nFL-7LJLJ||||||LJL-77\nF--JF--7||LJLJIF7FJ-\nL---JF-JLJIIIIFJLJJ7\n|F|F-JF---7IIIL7L|7|\n|FFJF7L7F-JF7IIL---7\n7-L-JL7||F7|L7F-7F7|\nL.L7LFJ|||||FJL7||LJ\nL7JLJL-JLJLJL--JLJ.L";
 
@@ -68,7 +68,7 @@ const NodeStep = struct {
     step: dirs,
 };
 
-fn part1(input: []const u8) u32 {
+pub fn part1(input: []const u8) u32 {
     var map: [65536]MapNode = .{.{}} ** 65536;
 
     var x: u8 = 1;
@@ -342,8 +342,8 @@ inline fn exists(step: ?dirs) bool {
     return true;
 }
 
-fn part2(input: []const u8) u32 {
-    var map: [65536]QuickNode = .{.{}} ** 65536;
+pub fn part2(input: []const u8) u32 {
+    var map: [65536]QuickNode = comptime [1]QuickNode{.{}} ** 65536;
 
     var x: u8 = 1;
     var y: u8 = 1;

@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day24.txt");
+pub const data = @embedFile("data/day24.txt");
 const testdata = "19, 13, 30 @ -2, 1, -2\n18, 19, 22 @ -1, -1, -2\n20, 25, 34 @ -2, -2, -4\n12, 31, 28 @ -1, -2, -1\n20, 19, 15 @ 1, -5, -3";
 
 test "day24_part1" {
@@ -99,7 +99,7 @@ fn intersection_2dz(in_a: Vector, in_b: Vector) ?[4]f64 {
     return .{ x, y, t1, t2 };
 }
 
-fn part1(input: []const u8, min: usize, max: usize) usize {
+pub fn part1(input: []const u8, min: usize, max: usize) usize {
     const ri = indexOf(u8, input, '\r');
     var lineit = splitSeq(u8, input, if (ri) |_| "\r\n" else "\n");
     var points: [300]Vector = undefined;
@@ -170,7 +170,7 @@ fn isInt(f: f64) bool {
     return @abs(f - std.math.round(f)) < 0.05;
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     const ri = indexOf(u8, input, '\r');
     var lineit = splitSeq(u8, input, if (ri) |_| "\r\n" else "\n");
     var points: [300]Vector = undefined;

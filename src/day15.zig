@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day15.txt");
+pub const data = @embedFile("data/day15.txt");
 const testdata = "rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7";
 
 test "day15_part1" {
@@ -18,7 +18,7 @@ test "day15_part1" {
     assert(res == 1320);
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var total: usize = 0;
     var current: usize = 0;
     for (input) |c| {
@@ -52,13 +52,13 @@ const Box = struct {
     size: u4,
 };
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var total: usize = 0;
     var current: usize = 0;
     var boxes: [256]Box = undefined;
     var label: [8]u8 = .{0} ** 8;
     var l: u4 = 0;
-    boxes = std.mem.zeroes(@TypeOf(boxes));
+    boxes = comptime std.mem.zeroes(@TypeOf(boxes));
 
     for (input, 0..) |c, i| {
         switch (c) {

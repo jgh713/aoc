@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day07.txt");
+pub const data = @embedFile("data/day07.txt");
 const testdata = "32T3K 765\nT55J5 684\nKK677 28\nKTJJT 220\nQQQJA 483\n";
 
 test "day1_part1" {
@@ -58,7 +58,7 @@ fn cardLess(c: @TypeOf(.{}), a: Card, b: Card) bool {
     return a.value < b.value;
 }
 
-fn part1(input: []const u8) u64 {
+pub fn part1(input: []const u8) u64 {
     var cards: [1000]Card = undefined;
     var card: u16 = 0;
     var left: bool = true;
@@ -122,7 +122,7 @@ test "day7_part2" {
     assert(res == 5905);
 }
 
-fn part2(input: []const u8) u64 {
+pub fn part2(input: []const u8) u64 {
     var cards: [1000]Card = undefined;
     var card: u16 = 0;
     var left: bool = true;

@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day16.txt");
+pub const data = @embedFile("data/day16.txt");
 const testdata = ".|...\\....\n|.-.\\.....\n.....|-...\n........|.\n..........\n.........\\\n..../.\\\\..\n.-.-/..|..\n.|....-|.\\\n..//.|....";
 
 test "day16_part1" {
@@ -96,8 +96,8 @@ fn walkLine(comptime width: u8, grid: *[width][width]Tile, ix: u8, iy: u8, idir:
     }
 }
 
-fn part1(input: []const u8, comptime width: u8) usize {
-    var grid: [width][width]Tile = std.mem.zeroes([width][width]Tile);
+pub fn part1(input: []const u8, comptime width: u8) usize {
+    var grid: [width][width]Tile = comptime std.mem.zeroes([width][width]Tile);
     var x: u8 = 0;
     var y: u8 = 0;
 
@@ -156,8 +156,8 @@ fn tryGrid(comptime width: u8, grid: *[width][width]Tile, x: u8, y: u8, dir: Dir
     return total;
 }
 
-fn part2(input: []const u8, comptime width: u8) usize {
-    var grid: [width][width]Tile = std.mem.zeroes([width][width]Tile);
+pub fn part2(input: []const u8, comptime width: u8) usize {
+    var grid: [width][width]Tile = comptime std.mem.zeroes([width][width]Tile);
     var x: u8 = 0;
     var y: u8 = 0;
 

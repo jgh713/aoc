@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day14.txt");
+pub const data = @embedFile("data/day14.txt");
 const testdata = "O....#....\nO.OO#....#\n.....##...\nOO.#O....O\n.O.....O#.\nO.#..O.#.#\n..O..#O..O\n.......O..\n#....###..\n#OO..#....";
 
 test "day14_part1" {
@@ -147,7 +147,7 @@ fn calcLoad(comptime width: u8, map: *[width][width]Tile, dir: Dirs) usize {
     return load;
 }
 
-fn part1(input: []const u8, comptime width: u8) usize {
+pub fn part1(input: []const u8, comptime width: u8) usize {
     var map: [width][width]Tile = undefined;
     var x: u8 = 0;
     var y: u8 = 0;
@@ -185,7 +185,7 @@ test "day14_part2" {
     assert(res == 64);
 }
 
-fn part2(input: []const u8, comptime width: u8) !usize {
+pub fn part2(input: []const u8, comptime width: u8) !usize {
     var map: [width][width]Tile = undefined;
     var x: u8 = 0;
     var y: u8 = 0;
@@ -212,7 +212,7 @@ fn part2(input: []const u8, comptime width: u8) !usize {
 
     while (step < 1000000000) {
         if (!skipped) {
-            var key: [1950]u16 = std.mem.zeroes([1950]u16);
+            var key: [1950]u16 = comptime std.mem.zeroes([1950]u16);
             var ki: u16 = 0;
             for (map, 0..) |row, my| {
                 for (row, 0..) |tile, mx| {

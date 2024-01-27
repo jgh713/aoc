@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day18.txt");
+pub const data = @embedFile("data/day18.txt");
 const testdata = "R 6 (#70c710)\nD 5 (#0dc571)\nL 2 (#5713f0)\nD 2 (#d2c081)\nR 2 (#59c680)\nD 2 (#411b91)\nL 5 (#8ceee2)\nU 2 (#caa173)\nL 1 (#1b58a2)\nU 2 (#caa171)\nR 2 (#7807d2)\nU 3 (#a77fa3)\nL 2 (#015232)\nU 2 (#7a21e3)";
 
 test "day18_part1" {
@@ -29,7 +29,7 @@ const mapwidth = 500;
 const Tilemap = [mapwidth][mapwidth]Tile;
 
 inline fn neighbors(x: u16, y: u16) [4]?[2]u16 {
-    var res: [4]?[2]u16 = std.mem.zeroes([4]?[2]u16);
+    var res: [4]?[2]u16 = comptime std.mem.zeroes([4]?[2]u16);
     var count: u8 = 0;
     if (x > 0) {
         res[count] = .{ x - 1, y };
@@ -190,7 +190,7 @@ fn printMap(map: *Tilemap) void {
     }
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     const sx: i32 = 0;
     const sy: i32 = 0;
     var x: i32 = sx;
@@ -318,7 +318,7 @@ fn part2Slow(input: []const u8) u128 {
     return @intCast((diff + perimeter) / 2 + 1);
 }
 
-fn part2(input: []const u8) u128 {
+pub fn part2(input: []const u8) u128 {
     const sx: i128 = 0;
     const sy: i128 = 0;
     var x: i128 = sx;

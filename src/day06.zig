@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day06.txt");
+pub const data = @embedFile("data/day06.txt");
 const testdata = "Time:      7  15   30\nDistance:  9  40  200\n";
 
 test "day6_part1" {
@@ -45,7 +45,7 @@ inline fn waysToWin(time: usize, dist: usize) usize {
     return 0;
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var line: u3 = 0;
     var current: usize = 0;
     var times: [4]usize = undefined;
@@ -86,7 +86,7 @@ test "day6_part2" {
     assert(res == 71503);
 }
 
-fn part2(input: []const u8) usize {
+pub fn part2(input: []const u8) usize {
     var time: usize = 0;
     var dist: usize = 0;
     var current: usize = 0;

@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day03.txt");
+pub const data = @embedFile("data/day03.txt");
 const testdata = "467..114..\n...*......\n..35..633.\n......#...\n617*......\n.....+.58.\n..592.....\n......755.\n...$.*....\n.664.598..";
 
 test "day3_part1" {
@@ -24,7 +24,7 @@ inline fn gridIndex(x: usize, y: usize, width: usize) usize {
     return y * width + x;
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     const gridwidth = indexOf(u8, input, '\n').?;
     const width = gridwidth + 1;
     const gridheight = (input.len / width);
@@ -145,7 +145,7 @@ fn part2hash(input: []const u8) !usize {
     return sum;
 }
 
-fn part2(input: []const u8) !usize {
+pub fn part2(input: []const u8) !usize {
     var gears: [20000]symbol = undefined;
     for (&gears) |*gear| {
         gear.count = 0;

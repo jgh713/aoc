@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day08.txt");
+pub const data = @embedFile("data/day08.txt");
 const testdata = "LLR\n\nAAA = (BBB, BBB)\nBBB = (AAA, ZZZ)\nZZZ = (ZZZ, ZZZ)";
 
 test "day8_part1" {
@@ -16,7 +16,7 @@ test "day8_part1" {
     assert(res == 6);
 }
 
-fn part1(input: []const u8) u32 {
+pub fn part1(input: []const u8) u32 {
     var step: u16 = 0;
     var steps: [310]u1 = undefined;
 
@@ -241,7 +241,7 @@ fn getStepsToZ(start: u16, map: [65535][2]u16, step: u16, steps: [310]u1) u32 {
     return count;
 }
 
-fn part2(input: []const u8) u64 {
+pub fn part2(input: []const u8) u64 {
     var step: u16 = 0;
     var steps: [310]u1 = undefined;
 

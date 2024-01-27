@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day20.txt");
+pub const data = @embedFile("data/day20.txt");
 const testdata1 = "broadcaster -> za, zb, zc\n%za -> zb\n%zb -> zc\n%zc -> zi\n&zi -> za";
 const testdata2 = "broadcaster -> za\n%za -> zi, zc\n&zi -> zb\n%zb -> zc\n&zc -> zo";
 
@@ -182,11 +182,11 @@ fn runSignals(pnodes: *[]Node, heads: []u16, steps: usize, nodecache: *[60]*Node
     return signalcount[0] * signalcount[1];
 }
 
-fn part1(input: []const u8) u64 {
+pub fn part1(input: []const u8) u64 {
     var nodes: []Node = gpa.alloc(Node, 65536) catch unreachable;
     defer gpa.free(nodes);
     for (nodes) |*node| {
-        node.* = std.mem.zeroes(Node);
+        node.* = comptime std.mem.zeroes(Node);
     }
     buildNodes(input, &nodes);
 
@@ -252,7 +252,7 @@ fn findLowRX(pnodes: *[]Node, heads: []u16) u64 {
     defer gpa.free(queue);
     var stepcount: usize = 0;
     const outid = nodeId("rx");
-    var offsets: [4]usize = .{0} ** 4;
+    var offsets: [4]usize = [1]usize{0} ** 4;
 
     while (true) {
         var qstart: u16 = 0;
@@ -331,11 +331,11 @@ fn findLowRX(pnodes: *[]Node, heads: []u16) u64 {
     }
 }
 
-fn part2(input: []const u8) u64 {
+pub fn part2(input: []const u8) u64 {
     var nodes: []Node = gpa.alloc(Node, 65536) catch unreachable;
     defer gpa.free(nodes);
     for (nodes) |*node| {
-        node.* = std.mem.zeroes(Node);
+        node.* = comptime std.mem.zeroes(Node);
     }
     buildNodes(input, &nodes);
 

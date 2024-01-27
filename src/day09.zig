@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day09.txt");
+pub const data = @embedFile("data/day09.txt");
 const testdata = "0 3 6 9 12 15\n1 3 6 10 15 21\n10 13 16 21 30 45\n";
 
 test "day9_part1" {
@@ -41,7 +41,7 @@ fn getLineVal(nums: []const i64, count: u8) i128 {
     return diff + nums[count - 1];
 }
 
-fn part1(input: []const u8, isfile: bool) i128 {
+pub fn part1(input: []const u8, isfile: bool) i128 {
     var itline: std.mem.SplitIterator(u8, .sequence) = undefined;
     if (isfile) {
         itline = splitSeq(u8, input, "\r\n");
@@ -93,7 +93,7 @@ fn getLineValLeft(nums: []const i64, count: u8) i128 {
     return nums[0] - diff;
 }
 
-fn part2(input: []const u8, isfile: bool) i128 {
+pub fn part2(input: []const u8, isfile: bool) i128 {
     var itline: std.mem.SplitIterator(u8, .sequence) = undefined;
     if (isfile) {
         itline = splitSeq(u8, input, "\r\n");

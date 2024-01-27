@@ -8,7 +8,7 @@ const BitSet = std.DynamicBitSet;
 const util = @import("util.zig");
 const gpa = util.gpa;
 
-const data = @embedFile("data/day25.txt");
+pub const data = @embedFile("data/day25.txt");
 const testinput = "jqt: rhn xhk nvd\nrsh: frs pzl lsr\nxhk: hfx\ncmg: qnr nvd lhk bvb\nrhn: xhk bvb hfx\nbvb: xhk hfx\npzl: lsr hfx nvd\nqnr: nvd\nntq: jqt hfx bvb xhk\nnvd: lhk\nlsr: lhk\nrzs: qnr cmg lsr rsh\nfrs: qnr lhk lsr";
 
 test "day25_part1" {
@@ -54,7 +54,7 @@ fn shortestPath(start: *Component, end: *Component) [1000]u16 {
     // Calc shortest path and return the list nodes along the shortest path
     var prevnodes: [32768]u16 = undefined;
     var queue: [2500]*Component = undefined;
-    var visited: [32768]bool = std.mem.zeroes([32768]bool);
+    var visited: [32768]bool = comptime std.mem.zeroes([32768]bool);
 
     var qstart: usize = 0;
     var qend: usize = 1;
@@ -68,7 +68,7 @@ fn shortestPath(start: *Component, end: *Component) [1000]u16 {
 
         if (node == end) {
             // Found the end node
-            var path: [1000]u16 = std.mem.zeroes([1000]u16);
+            var path: [1000]u16 = comptime std.mem.zeroes([1000]u16);
             var pathlen: usize = 1;
             var cur = end.id;
             const sid = start.id;
@@ -134,7 +134,7 @@ fn testCuts(compmap: []*Component, cuts: [3]u32) ?usize {
     const toskip = skiplist(cuts);
     var step: usize = 0;
     var queue: [2500]*Component = undefined;
-    var visited: [32768]bool = std.mem.zeroes([32768]bool);
+    var visited: [32768]bool = comptime std.mem.zeroes([32768]bool);
     var qstart: usize = 0;
     var qend: usize = 0;
     var sizes: [2]usize = .{0} ** 2;
@@ -146,7 +146,7 @@ fn testCuts(compmap: []*Component, cuts: [3]u32) ?usize {
                 print("Lone component: {s}\n", .{idcomp(queue[qend - 1].id)});
             }
             if (step > 0) {
-                print("Step {d}: {d}\n", .{ step, size });
+                //print("Step {d}: {d}\n", .{ step, size });
                 sizes[step - 1] = size;
                 size = 0;
             }
@@ -191,9 +191,10 @@ fn testCuts(compmap: []*Component, cuts: [3]u32) ?usize {
     }
 }
 
-fn part1(input: []const u8) usize {
+pub fn part1(input: []const u8) usize {
     var line_iter = if (indexOf(u8, input, '\r')) |_| std.mem.splitSequence(u8, input, "\n") else std.mem.splitSequence(u8, input, "\n");
-    var components: [32768]Component = std.mem.zeroes([32768]Component);
+    var components: [32768]Component = comptime std.mem.zeroes([32768]Component);
+
     var compmap: [2500]*Component = undefined;
     while (line_iter.next()) |line| {
         const id_str = line[0..3];
