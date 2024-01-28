@@ -106,32 +106,32 @@ const Map = struct {
         //self.buildNodes();
     }
 
-    fn neighbors(self: *Map, x: u8, y: u8) [][2]u8 {
-        var out: [4][2]u8 = undefined;
-        var oc: u8 = 0;
-
-        for (dirmods) |mod| {
-            const inx = @as(i16, x) + mod[0];
-            const iny = @as(i16, y) + mod[1];
-
-            if (inx < 0 or iny < 0 or inx >= self.maxx or iny >= self.maxy) {
-                continue;
-            }
-
-            const nx: u8 = @intCast(inx);
-            const ny: u8 = @intCast(iny);
-
-            if (self.tiles[ny][nx].walkable) {
-                out[oc] = .{ nx, ny };
-                oc += 1;
-            }
-        }
-
-        return out[0..oc];
-    }
+    //    fn neighbors(self: *Map, x: u8, y: u8) [][2]u8 {
+    //        var out: [4][2]u8 = undefined;
+    //        var oc: u8 = 0;
+    //
+    //        for (dirmods) |mod| {
+    //            const inx = @as(i16, x) + mod[0];
+    //            const iny = @as(i16, y) + mod[1];
+    //
+    //            if (inx < 0 or iny < 0 or inx >= self.maxx or iny >= self.maxy) {
+    //                continue;
+    //            }
+    //
+    //            const nx: u8 = @intCast(inx);
+    //            const ny: u8 = @intCast(iny);
+    //
+    //            if (self.tiles[ny][nx].walkable) {
+    //                out[oc] = .{ nx, ny };
+    //                oc += 1;
+    //            }
+    //        }
+    //
+    //        return out[0..oc];
+    //    }
 
     fn neighborsUnvisited(self: *Map, x: u8, y: u8) [][2]u8 {
-        var out: [4][2]u8 = undefined;
+        var out: [][2]u8 = gpa.alloc([2]u8, 4) catch unreachable;
         var oc: u8 = 0;
 
         //print("Neighbors of ({}, {})\n", .{ x, y });
@@ -168,7 +168,7 @@ const Map = struct {
     }
 
     fn neighborsSkipLast(self: *Map, x: u8, y: u8, lx: u8, ly: u8) [][2]u8 {
-        var out: [4][2]u8 = undefined;
+        var out: [][2]u8 = gpa.alloc([2]u8, 4) catch unreachable;
         var oc: u8 = 0;
 
         for (dirmods) |mod| {
