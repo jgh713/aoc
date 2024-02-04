@@ -12,23 +12,65 @@ pub const data = @embedFile("data/day06.txt");
 const testdata = "";
 
 test "day06_part1" {
-    const res = part1(testdata);
-    assert(res == 0);
+    assert(part1("mjqjpqmgbljsphdztnvjfqwrcgsmlb") == 7);
+    assert(part1("bvwbjplbgvbhsrlpgdmjqwftvncz") == 5);
+    assert(part1("nppdvjthqldpwncqszvftbrmjlhg") == 6);
+    assert(part1("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg") == 10);
+    assert(part1("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 11);
+}
+
+fn findUniqueStr(str: []const u8, len: u8) usize {
+    const offset = len - 1;
+    var charcount: [26]u8 = std.mem.zeroes([26]u8);
+    var matches: usize = 0;
+    for (str[0..offset]) |c| {
+        const cv = &charcount[c - 'a'];
+        if (cv.* == 1) {
+            matches -= 1;
+        }
+        cv.* += 1;
+        if (cv.* == 1) {
+            matches += 1;
+        }
+    }
+    for (str[offset..], offset..) |c, ci| {
+        const cv = &charcount[c - 'a'];
+        if (cv.* == 1) {
+            matches -= 1;
+        }
+        cv.* += 1;
+        if (cv.* == 1) {
+            matches += 1;
+        }
+        if (matches == len) {
+            return ci + 1;
+        }
+        const cv2 = &charcount[str[ci - offset] - 'a'];
+        if (cv2.* == 1) {
+            matches -= 1;
+        }
+        cv2.* -= 1;
+        if (cv2.* == 1) {
+            matches += 1;
+        }
+    }
+    unreachable;
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    return findUniqueStr(input, 4);
 }
 
 test "day06_part2" {
-    const res = part2(testdata);
-    assert(res == 0);
+    assert(part2("mjqjpqmgbljsphdztnvjfqwrcgsmlb") == 19);
+    assert(part2("bvwbjplbgvbhsrlpgdmjqwftvncz") == 23);
+    assert(part2("nppdvjthqldpwncqszvftbrmjlhg") == 23);
+    assert(part2("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg") == 29);
+    assert(part2("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw") == 26);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    return findUniqueStr(input, 14);
 }
 
 pub fn main() !void {

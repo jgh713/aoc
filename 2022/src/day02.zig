@@ -9,26 +9,65 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day02.txt");
-const testdata = "";
+const testdata = "A Y\r\nB X\r\nC Z";
 
 test "day02_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 15);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    comptime var points: [3][3]u8 = undefined;
+    comptime {
+        for (0..3) |oppmove| {
+            for (0..3) |mymove| {
+                var pts: u8 = 1;
+                pts += mymove;
+                if (oppmove == mymove) {
+                    pts += 3;
+                } else if ((oppmove + 1) % 3 == mymove) {
+                    pts += 6;
+                }
+                points[oppmove][mymove] = pts;
+            }
+        }
+    }
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        const oppmove = line[0] - 'A';
+        const mymove = line[2] - 'X';
+        total += points[oppmove][mymove];
+    }
+    return total;
 }
 
 test "day02_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 12);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    comptime var points: [3][3]u8 = undefined;
+    comptime {
+        for (0..3) |oppmove| {
+            for (0..3) |outcome| {
+                var pts: u8 = 1;
+                const mymove = (oppmove + 2 + outcome) % 3;
+                pts += mymove;
+                pts += outcome * 3;
+                points[oppmove][outcome] = pts;
+            }
+        }
+    }
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        const oppmove = line[0] - 'A';
+        const outcome = line[2] - 'X';
+        total += points[oppmove][outcome];
+    }
+    return total;
 }
 
 pub fn main() !void {

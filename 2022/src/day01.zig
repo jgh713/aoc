@@ -9,26 +9,60 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day01.txt");
-const testdata = "";
+const testdata = "1000\n2000\n3000\n\n4000\n\n5000\n6000\n\n7000\n8000\n9000\n\n10000";
 
 test "day01_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 24000);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    const separator = if (indexOf(u8, input, '\r')) |_| "\r\n" else "\n";
+    // Lazy way to get the separator between groups without allocation or copying
+    const esep = if (std.mem.eql(u8, separator, "\r\n")) "\r\n\r\n" else "\n\n";
+    var elves = splitSeq(u8, input, esep);
+    var max: usize = 0;
+    while (elves.next()) |elf| {
+        var foods = splitSeq(u8, elf, separator);
+        var total: usize = 0;
+        while (foods.next()) |food| {
+            total += parseInt(usize, food, 10) catch unreachable;
+        }
+        max = @max(total, max);
+    }
+    return max;
 }
 
 test "day01_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 45000);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    const separator = if (indexOf(u8, input, '\r')) |_| "\r\n" else "\n";
+    // Lazy way to get the separator between groups without allocation or copying
+    const esep = if (std.mem.eql(u8, separator, "\r\n")) "\r\n\r\n" else "\n\n";
+    var elves = splitSeq(u8, input, esep);
+    var maxes: [3]usize = comptime std.mem.zeroes([3]usize);
+    while (elves.next()) |elf| {
+        var foods = splitSeq(u8, elf, separator);
+        var total: usize = 0;
+        while (foods.next()) |food| {
+            total += parseInt(usize, food, 10) catch unreachable;
+        }
+        for (0..3) |maxi| {
+            if (total > maxes[maxi]) {
+                for (0..(2 - maxi)) |mi| {
+                    const i = 2 - mi;
+                    maxes[i] = maxes[i - 1];
+                }
+                maxes[maxi] = total;
+                break;
+            }
+        }
+    }
+
+    return maxes[0] + maxes[1] + maxes[2];
 }
 
 pub fn main() !void {

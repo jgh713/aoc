@@ -9,26 +9,70 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day03.txt");
-const testdata = "";
+const testdata = "vJrwpWtwJgWrhcsFMMfFFhFp\r\njqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\r\nPmmdzqPrVvPwwTWBwg\r\nwMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\r\nttgJtRGJQctTZtZT\r\nCrZsJsPPZsGzwwsLwLmpwMDw";
 
 test "day03_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 157);
+}
+inline fn charid(c: u8) u8 {
+    switch (c) {
+        'a'...'z' => return c - 'a',
+        'A'...'Z' => return c - 'A' + 26,
+        else => unreachable,
+    }
+}
+
+fn parseLine(line: []const u8) usize {
+    var found: [52]bool = comptime std.mem.zeroes([52]bool);
+    const half = line.len / 2;
+    for (0..half) |i| {
+        const c = line[i];
+        found[charid(c)] = true;
+    }
+    for (half..line.len) |i| {
+        const c = line[i];
+        if (found[charid(c)]) {
+            return (charid(c) + 1);
+        }
+    }
+    unreachable;
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        total += parseLine(line);
+    }
+    return total;
 }
 
 test "day03_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 70);
+}
+
+fn lineInt(line: []const u8) usize {
+    var out: usize = 0;
+    for (0..line.len) |i| {
+        const c = line[i];
+        out |= @as(usize, 1) << @truncate(charid(c));
+    }
+    return out;
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        var match = lineInt(line);
+        match &= lineInt(lines.next().?);
+        match &= lineInt(lines.next().?);
+        const clz = @clz(match);
+        total += (64 - clz);
+    }
+    return total;
 }
 
 pub fn main() !void {

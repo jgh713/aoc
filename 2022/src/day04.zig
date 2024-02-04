@@ -9,26 +9,57 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day04.txt");
-const testdata = "";
+const testdata = "2-4,6-8\r\n2-3,4-5\r\n5-7,7-9\r\n2-8,3-7\r\n6-6,4-6\r\n2-6,4-8";
 
 test "day04_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 2);
+}
+
+fn parseLine(line: []const u8) [4]usize {
+    var vals: [4]usize = comptime std.mem.zeroes([4]usize);
+    var i: usize = 0;
+    for (line) |c| {
+        switch (c) {
+            '0'...'9' => {
+                vals[i] *= 10;
+                vals[i] += c - '0';
+            },
+            '-', ',' => {
+                i += 1;
+            },
+            else => unreachable,
+        }
+    }
+    return vals;
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        const vals: [4]usize = parseLine(line);
+        if ((vals[0] <= vals[2] and vals[1] >= vals[3]) or
+            (vals[2] <= vals[0] and vals[3] >= vals[1]))
+            total += 1;
+    }
+    return total;
 }
 
 test "day04_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 4);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    var total: usize = 0;
+    while (lines.next()) |line| {
+        const vals: [4]usize = parseLine(line);
+        if (vals[0] <= vals[3] and vals[2] <= vals[1])
+            total += 1;
+    }
+    return total;
 }
 
 pub fn main() !void {
