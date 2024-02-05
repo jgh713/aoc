@@ -9,26 +9,163 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day20.txt");
-const testdata = "";
+const testdata = "1\r\n2\r\n-3\r\n3\r\n-2\r\n0\r\n4";
+const testdata2 = "1\r\n2\r\n-3\r\n3\r\n-2\r\n0\r\n8";
 
 test "day20_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 3);
+    const res2 = part1(testdata2);
+    assert(res2 == 7);
 }
 
-pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+const Number = struct {
+    value: isize,
+    index: usize,
+};
+
+pub fn part1(input: []const u8) isize {
+    var nums: [5000]Number = undefined;
+    var ncount: usize = 0;
+    var lines = splitSeq(u8, input, "\r\n");
+
+    while (lines.next()) |line| {
+        const num = parseInt(isize, line, 10) catch unreachable;
+        nums[ncount] = Number{ .value = num, .index = ncount };
+        ncount += 1;
+    }
+
+    var current: [5000]Number = nums;
+    var hold: [5000]Number = undefined;
+
+    for (0..ncount) |ni| {
+        const num = nums[ni];
+        const index: usize = for (current[0..ncount], 0..) |n, i| {
+            if (n.index == num.index) {
+                break i;
+            }
+        } else unreachable;
+        const newindex: usize = @abs(@mod(@as(isize, @intCast(index)) + num.value, @as(isize, @intCast(ncount - 1))));
+        if (newindex == index) {
+            continue;
+        }
+        //print("Index: {}, NewIndex: {}\n", .{ index, newindex });
+        var slices: [3][]Number = undefined;
+        if (newindex > index) {
+            slices[0] = current[newindex + 1 .. ncount];
+            slices[1] = current[0..index];
+            slices[2] = current[index + 1 .. newindex + 1];
+        } else {
+            slices[0] = current[newindex..index];
+            slices[1] = current[index + 1 .. ncount];
+            slices[2] = current[0..newindex];
+        }
+        //print("First: {any}\n", .{slices[0]});
+        //print("Second: {any}\n", .{slices[1]});
+        //print("Third: {any}\n", .{slices[2]});
+        hold[0] = num;
+        var end: usize = 1;
+        for (slices) |slice| {
+            if (slice.len > 0) {
+                @memcpy(hold[end .. end + slice.len], slice);
+                end += slice.len;
+            }
+        }
+        //print("Post-shift array is now: ", .{});
+        //for (hold[0..ncount]) |n| {
+        //    print("{}, ", .{n.value});
+        //}
+        //print("\n", .{});
+        current = hold;
+    }
+
+    const zeroIndex: usize = for (current[0..ncount], 0..) |n, i| {
+        if (n.value == 0) {
+            break i;
+        }
+    } else unreachable;
+
+    const vi1 = (zeroIndex + 1000) % ncount;
+    const vi2 = (zeroIndex + 2000) % ncount;
+    const vi3 = (zeroIndex + 3000) % ncount;
+
+    const v1 = current[vi1].value;
+    const v2 = current[vi2].value;
+    const v3 = current[vi3].value;
+
+    //print("Values: {}, {}, {}\n", .{ v1, v2, v3 });
+
+    return v1 + v2 + v3;
 }
 
 test "day20_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 1623178306);
 }
 
-pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+pub fn part2(input: []const u8) isize {
+    var nums: [5000]Number = undefined;
+    var ncount: usize = 0;
+    var lines = splitSeq(u8, input, "\r\n");
+
+    while (lines.next()) |line| {
+        const num = parseInt(isize, line, 10) catch unreachable;
+        nums[ncount] = Number{ .value = num * 811589153, .index = ncount };
+        ncount += 1;
+    }
+
+    var current: [5000]Number = nums;
+    var hold: [5000]Number = undefined;
+
+    for (0..10) |_| {
+        for (0..ncount) |ni| {
+            const num = nums[ni];
+            const index: usize = for (current[0..ncount], 0..) |n, i| {
+                if (n.index == num.index) {
+                    break i;
+                }
+            } else unreachable;
+            const newindex: usize = @abs(@mod(@as(isize, @intCast(index)) + num.value, @as(isize, @intCast(ncount - 1))));
+            if (newindex == index) {
+                continue;
+            }
+            var slices: [3][]Number = undefined;
+            if (newindex > index) {
+                slices[0] = current[newindex + 1 .. ncount];
+                slices[1] = current[0..index];
+                slices[2] = current[index + 1 .. newindex + 1];
+            } else {
+                slices[0] = current[newindex..index];
+                slices[1] = current[index + 1 .. ncount];
+                slices[2] = current[0..newindex];
+            }
+            hold[0] = num;
+            var end: usize = 1;
+            for (slices) |slice| {
+                if (slice.len > 0) {
+                    @memcpy(hold[end .. end + slice.len], slice);
+                    end += slice.len;
+                }
+            }
+            current = hold;
+        }
+    }
+
+    const zeroIndex: usize = for (current[0..ncount], 0..) |n, i| {
+        if (n.value == 0) {
+            break i;
+        }
+    } else unreachable;
+
+    const vi1 = (zeroIndex + 1000) % ncount;
+    const vi2 = (zeroIndex + 2000) % ncount;
+    const vi3 = (zeroIndex + 3000) % ncount;
+
+    const v1 = current[vi1].value;
+    const v2 = current[vi2].value;
+    const v3 = current[vi3].value;
+
+    return v1 + v2 + v3;
 }
 
 pub fn main() !void {

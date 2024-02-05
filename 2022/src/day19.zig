@@ -63,23 +63,27 @@ fn parseBlueprint(line: []const u8) Blueprint {
 
 const StateCache = struct {
     time: u8,
-    bots: [4]u8,
-    resources: [4]u8,
+    bots: [3]u8,
+    resources: [3]u8,
+    geodes: u8,
 };
 
 const State = struct {
     costs: [4]Cost,
     time: u8,
-    bots: [4]u8 = .{ 1, 0, 0, 0 },
+    bots: [3]u8 = .{ 1, 0, 0 },
     maxes: [4]u8,
-    resources: [4]u8 = std.mem.zeroes([4]u8),
+    resources: [3]u8 = std.mem.zeroes([3]u8),
     target: BotType = undefined,
     maxtime: u8,
     cachemap: *Map(StateCache, u64),
+    geodes: u8 = 0,
+    best: *usize,
 
     pub fn processBlueprint(bp: Blueprint, maxtime: u8) usize {
         var highest: usize = 0;
         var maxes: [4]u8 = std.mem.zeroes([4]u8);
+        var best: usize = 0;
 
         var cachemap = Map(StateCache, u64).init(gpa);
         defer cachemap.deinit();
@@ -93,7 +97,7 @@ const State = struct {
         maxes[3] = std.math.maxInt(u8);
 
         for (0..4) |tid| {
-            var state = State{ .time = 0, .maxtime = maxtime, .costs = bp.costs, .target = @enumFromInt(tid), .maxes = maxes, .cachemap = &cachemap };
+            var state = State{ .time = 0, .maxtime = maxtime, .costs = bp.costs, .target = @enumFromInt(tid), .maxes = maxes, .cachemap = &cachemap, .best = &best };
             if (!state.validTarget(tid)) continue;
             const res = state.process();
             highest = @max(highest, res);
@@ -102,7 +106,7 @@ const State = struct {
     }
 
     fn validTarget(self: *@This(), tid: usize) bool {
-        if (self.bots[tid] >= self.maxes[tid]) return false;
+        if (tid != 3 and self.bots[tid] >= self.maxes[tid]) return false;
         if (tid != 3 and self.time < self.maxtime) {
             const timeleft: usize = @intCast(self.maxtime - 1 - self.time);
             const most = (timeleft * self.maxes[tid]);
@@ -128,15 +132,19 @@ const State = struct {
     fn buildNext(self: *@This()) void {
         var res = self.resources;
         const tid = @intFromEnum(self.target);
-        for (0..4) |resid| {
+        for (0..3) |resid| {
             res[resid] -= self.costs[tid][resid];
         }
-        self.bots[tid] += 1;
+        if (tid == 3) {
+            self.geodes += (self.maxtime - self.time);
+        } else {
+            self.bots[tid] += 1;
+        }
         self.resources = res;
     }
 
     fn tick(self: *@This()) void {
-        for (0..4) |tid| {
+        for (0..3) |tid| {
             self.resources[tid] += self.bots[tid];
         }
         self.time += 1;
@@ -149,10 +157,19 @@ const State = struct {
             //print("Stepped forward: {any}\n", .{self});
         }
 
-        if (self.time >= self.maxtime) return self.resources[@intFromEnum(BotType.Geode)];
+        if (self.time >= self.maxtime) {
+            self.best.* = @max(self.best.*, self.geodes);
+            return self.geodes;
+        }
 
         self.tick();
         self.buildNext();
+
+        const diff = @as(isize, @intCast(self.maxtime)) - self.time - 1;
+        if (diff > 0) {
+            const most = if (@mod(diff, 2) == 0) (diff + 1) * (@divExact(diff, 2)) else ((diff + 1) * @divExact(diff + 1, 2)) - (@divExact(diff + 1, 2));
+            if (most <= self.best.*) return 0;
+        }
 
         //if (self.canBuild(@intFromEnum(BotType.Geode))) {
         //    self.target = BotType.Geode;
@@ -160,33 +177,28 @@ const State = struct {
         //}
 
         var highest: usize = 0;
-        const cachekey = StateCache{ .time = self.time, .bots = self.bots, .resources = self.resources };
-        const entry = self.cachemap.getOrPut(cachekey) catch unreachable;
-        print("Valueptr is: {any}\n", .{entry.value_ptr});
-        if (entry.found_existing) {
-            print("Cache hit: {any}\n", .{entry.key_ptr.*});
-            return entry.value_ptr.*;
-        } else {
-            print("Cache miss: {any}\n", .{entry.key_ptr.*});
-            entry.value_ptr.* = 0;
+        const cachekey = StateCache{ .time = self.time, .bots = self.bots, .resources = self.resources, .geodes = self.geodes };
+        if (self.cachemap.get(cachekey)) |val| {
+            return val;
         }
 
-        for (0..4) |tid| {
-            if (self.validTarget(tid)) {
-                //print("Valid target: {}\n", .{tid});
-                var newstate = self.*;
-                newstate.target = @enumFromInt(tid);
-                highest = @max(highest, newstate.process());
-            } else {
-                //print("Invalid target: {}\n", .{tid});
+        if (self.time < (self.maxtime - 1)) {
+            for (0..4) |tid| {
+                if (self.validTarget(tid)) {
+                    //print("Valid target: {}\n", .{tid});
+                    var newstate = self.*;
+                    newstate.target = @enumFromInt(tid);
+                    highest = @max(highest, newstate.process());
+                } else {
+                    //print("Invalid target: {}\n", .{tid});
+                }
             }
+        } else {
+            self.target = BotType.Geode;
+            highest = self.process();
         }
 
-        print("Afterptr is: {any}\n", .{entry.value_ptr});
-        print("Setting value: {any}\n", .{highest});
-        print("Current value is {any}\n", .{entry.value_ptr.*});
-        entry.value_ptr.* = highest;
-        print("Set value.\n", .{});
+        self.cachemap.put(cachekey, highest) catch unreachable;
         return highest;
     }
 };
@@ -198,7 +210,7 @@ pub fn part1(input: []const u8) usize {
     var lines = splitSeq(u8, input, "\r\n");
     while (lines.next()) |line| {
         bps[bpi] = parseBlueprint(line);
-        print("Parsed blueprint {}: {any}\n", .{ bpi + 1, bps[bpi] });
+        //print("Parsed blueprint {}: {any}\n", .{ bpi + 1, bps[bpi] });
         bpi += 1;
     }
 
@@ -207,7 +219,7 @@ pub fn part1(input: []const u8) usize {
     for (0..bpi) |i| {
         const res = State.processBlueprint(bps[i], 24);
         total += res * (i + 1);
-        print("Blueprint {}: {}\n", .{ i + 1, res });
+        //print("Blueprint {}: {}\n", .{ i + 1, res });
     }
 
     return total;
@@ -225,7 +237,7 @@ pub fn part2(input: []const u8) usize {
     var lines = splitSeq(u8, input, "\r\n");
     while (lines.next()) |line| {
         bps[bpi] = parseBlueprint(line);
-        print("Parsed blueprint {}: {any}\n", .{ bpi + 1, bps[bpi] });
+        //print("Parsed blueprint {}: {any}\n", .{ bpi + 1, bps[bpi] });
         bpi += 1;
         if (bpi == 3) break;
     }
@@ -235,7 +247,7 @@ pub fn part2(input: []const u8) usize {
     for (0..bpi) |i| {
         const res = State.processBlueprint(bps[i], 32);
         total *= res;
-        print("Blueprint {}: {}\n", .{ i + 1, res });
+        //print("Blueprint {}: {}\n", .{ i + 1, res });
     }
 
     return total;
