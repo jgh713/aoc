@@ -12,36 +12,62 @@ pub const data = @embedFile("data/day25.txt");
 const testdata = "";
 
 test "day25_part1" {
-    const res = part1(testdata);
+    const res = part1(data);
     assert(res == 0);
+    assert(calcOffset(1, 2) == 3);
+    //print("offset: {}\n", .{calcOffset(4, 2)});
+    assert(calcOffset(4, 2) == 12);
+    assert(calcOffset(3, 4) == 19);
+    //print("offset: {}\n", .{calcOffset(2978, 3083)});
+}
+
+fn calcOffset(row: usize, col: usize) usize {
+    const corner = row + col - 1;
+    var offset: usize = 0;
+    for (1..corner) |i| {
+        offset += i;
+    }
+
+    return offset + col;
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
-}
+    var words = splitSca(u8, input, ' ');
+    for (0..16) |_| _ = words.next();
+    const rowword = words.next().?;
+    _ = words.next();
+    const colword = words.next().?;
+    const row = parseInt(usize, rowword[0 .. rowword.len - 1], 10) catch unreachable;
+    const col = parseInt(usize, colword[0 .. colword.len - 1], 10) catch unreachable;
+    //print("row: {}, col: {}\n", .{ row, col });
 
-test "day25_part2" {
-    const res = part2(testdata);
-    assert(res == 0);
-}
+    const target = calcOffset(row, col) - 1;
+    const start: usize = 20151125;
 
-pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var value: usize = start;
+    // Starting at 0 makes calculating skips easier
+    var steps: usize = 0;
+    while (steps < target) {
+        steps += 1;
+        value = (value * 252533) % 33554393;
+        // Data loops, but it doesn't loop early enough to be useful
+        //if (value == start) {
+        //    print("Found a skip loop at step {}\n", .{steps});
+        //    print("Target: {}\n", .{target});
+        //    unreachable;
+        //}
+    }
+
+    return value;
 }
 
 pub fn main() !void {
     var timer = std.time.Timer.start() catch unreachable;
     const res = part1(data);
     const time = timer.lap();
-    const res2 = part2(data);
-    const time2 = timer.lap();
     print("Day 25:\n", .{});
     print("\tPart 1: {}\n", .{res});
-    print("\tPart 2: {}\n", .{res2});
     print("\tTime: {}ns\n", .{time});
-    print("\tTime: {}ns\n", .{time2});
 }
 
 // Useful stdlib functions

@@ -17,8 +17,45 @@ test "day17_part1" {
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var nums: [20]u16 = undefined;
+    var ni: u8 = 0;
+    var num: u16 = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '0'...'9' => num = num * 10 + (c - '0'),
+            '\n' => {
+                nums[ni] = num;
+                ni += 1;
+                num = 0;
+            },
+            '\r' => {},
+            else => unreachable,
+        }
+    }
+
+    if (num > 0) {
+        nums[ni] = num;
+        ni += 1;
+    }
+
+    const max = std.math.maxInt(u20);
+    var i: u20 = 0;
+    var count: usize = 0;
+
+    while (i < max) {
+        var sum: u16 = 0;
+        for (0..ni) |j| {
+            if (i & (@as(u20, 1) << @intCast(j)) > 0) {
+                sum += nums[j];
+            }
+        }
+        //print("sum: {}\n", .{sum});
+        if (sum == 150) count += 1;
+        i += 1;
+    }
+
+    return count;
 }
 
 test "day17_part2" {
@@ -27,8 +64,54 @@ test "day17_part2" {
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var nums: [20]u16 = undefined;
+    var ni: u8 = 0;
+    var num: u16 = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '0'...'9' => num = num * 10 + (c - '0'),
+            '\n' => {
+                nums[ni] = num;
+                ni += 1;
+                num = 0;
+            },
+            '\r' => {},
+            else => unreachable,
+        }
+    }
+
+    if (num > 0) {
+        nums[ni] = num;
+        ni += 1;
+    }
+
+    const max = std.math.maxInt(u20);
+    var i: u20 = 0;
+    var count: usize = 0;
+    var mincount: u8 = 20;
+
+    while (i < max) {
+        var sum: u16 = 0;
+        for (0..ni) |j| {
+            if (i & (@as(u20, 1) << @intCast(j)) > 0) {
+                sum += nums[j];
+            }
+        }
+        //print("sum: {}\n", .{sum});
+        if (sum == 150) {
+            const pc = @popCount(i);
+            if (pc < mincount) {
+                mincount = pc;
+                count = 1;
+            } else if (pc == mincount) {
+                count += 1;
+            }
+        }
+        i += 1;
+    }
+
+    return count;
 }
 
 pub fn main() !void {

@@ -11,14 +11,56 @@ const gpa = util.gpa;
 pub const data = @embedFile("data/day16.txt");
 const testdata = "";
 
+// children: 3
+// cats: 7
+// samoyeds: 2
+// pomeranians: 3
+// akitas: 0
+// vizslas: 0
+// goldfish: 5
+// trees: 3
+// cars: 2
+// perfumes: 1
+
+const map = std.ComptimeStringMap(usize, .{
+    .{ "children:", 3 },
+    .{ "cats:", 7 },
+    .{ "samoyeds:", 2 },
+    .{ "pomeranians:", 3 },
+    .{ "akitas:", 0 },
+    .{ "vizslas:", 0 },
+    .{ "goldfish:", 5 },
+    .{ "trees:", 3 },
+    .{ "cars:", 2 },
+    .{ "perfumes:", 1 },
+});
+
 test "day16_part1" {
-    const res = part1(testdata);
-    assert(res == 0);
+    //const res = part1(testdata);
+    //assert(res == 0);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    while (lines.next()) |line| {
+        const colon = indexOf(u8, line, ':').?;
+        const id = parseInt(usize, line[4..colon], 10) catch unreachable;
+        const partline = line[colon + 2 ..];
+        var parts = splitSeq(u8, partline, ", ");
+        const match = while (parts.next()) |part| {
+            var words = splitSca(u8, part, ' ');
+            const key = words.next().?;
+            const value = parseInt(usize, words.next().?, 10) catch unreachable;
+            const expected = map.get(key).?;
+            if (value != expected) {
+                break false;
+            }
+        } else true;
+        if (match) {
+            return id;
+        }
+    }
+    unreachable;
 }
 
 test "day16_part2" {
@@ -26,9 +68,59 @@ test "day16_part2" {
     assert(res == 0);
 }
 
+const Ops = enum {
+    EQ,
+    GT,
+    LT,
+};
+
+const Test = struct {
+    op: Ops,
+    value: usize,
+};
+
+const maptwo = std.ComptimeStringMap(Test, .{
+    .{ "children:", .{ .op = Ops.EQ, .value = 3 } },
+    .{ "cats:", .{ .op = Ops.GT, .value = 7 } },
+    .{ "samoyeds:", .{ .op = Ops.EQ, .value = 2 } },
+    .{ "pomeranians:", .{ .op = Ops.LT, .value = 3 } },
+    .{ "akitas:", .{ .op = Ops.EQ, .value = 0 } },
+    .{ "vizslas:", .{ .op = Ops.EQ, .value = 0 } },
+    .{ "goldfish:", .{ .op = Ops.LT, .value = 5 } },
+    .{ "trees:", .{ .op = Ops.GT, .value = 3 } },
+    .{ "cars:", .{ .op = Ops.EQ, .value = 2 } },
+    .{ "perfumes:", .{ .op = Ops.EQ, .value = 1 } },
+});
+
+fn opMatch(t: Test, v: usize) bool {
+    switch (t.op) {
+        Ops.EQ => return v == t.value,
+        Ops.GT => return v > t.value,
+        Ops.LT => return v < t.value,
+    }
+}
+
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var lines = splitSeq(u8, input, "\r\n");
+    while (lines.next()) |line| {
+        const colon = indexOf(u8, line, ':').?;
+        const id = parseInt(usize, line[4..colon], 10) catch unreachable;
+        const partline = line[colon + 2 ..];
+        var parts = splitSeq(u8, partline, ", ");
+        const match = while (parts.next()) |part| {
+            var words = splitSca(u8, part, ' ');
+            const key = words.next().?;
+            const value = parseInt(usize, words.next().?, 10) catch unreachable;
+            const expected = maptwo.get(key).?;
+            if (!opMatch(expected, value)) {
+                break false;
+            }
+        } else true;
+        if (match) {
+            return id;
+        }
+    }
+    unreachable;
 }
 
 pub fn main() !void {
