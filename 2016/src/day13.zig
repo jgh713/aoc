@@ -16,9 +16,55 @@ test "day13_part1" {
     assert(res == 0);
 }
 
+fn posValid(num: usize, pos: [2]usize) bool {
+    const x = pos[0];
+    const y = pos[1];
+    const val = x * x + 3 * x + 2 * x * y + y + y * y + num;
+    const count = @popCount(val);
+    return count % 2 == 0;
+}
+
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    const num = parseInt(usize, input, 10) catch unreachable;
+    var membuffer: [6000000]u8 = undefined;
+    var alloc_impl = std.heap.FixedBufferAllocator.init(&membuffer);
+    const alloc = alloc_impl.allocator();
+
+    var queue: [500][2]usize = undefined;
+    var qstart: usize = 0;
+    var qend: usize = 1;
+
+    var map = Map([2]usize, void).init(alloc);
+
+    map.put(.{ 1, 1 }, {}) catch unreachable;
+    queue[0] = .{ 1, 1 };
+
+    var steps: usize = 1;
+    var nextstep: usize = 1;
+    while (qstart != qend) : (qstart += 1) {
+        if (qstart == queue.len) qstart = 0;
+        if (qstart == nextstep) {
+            steps += 1;
+            nextstep = qend;
+        }
+
+        const pos = queue[qstart];
+        for ([_][2]usize{ .{ pos[0] + 1, pos[1] }, .{ pos[0], pos[1] + 1 }, .{ pos[0] -| 1, pos[1] }, .{ pos[0], pos[1] -| 1 } }) |newpos| {
+            if (newpos[0] == 31 and newpos[1] == 39) {
+                return steps;
+            }
+            const e = map.getOrPut(newpos) catch unreachable;
+            if (!e.found_existing) {
+                if (posValid(num, newpos)) {
+                    queue[qend] = newpos;
+                    qend += 1;
+                    if (qend == queue.len) qend = 0;
+                }
+            }
+        }
+    }
+
+    unreachable;
 }
 
 test "day13_part2" {
@@ -27,8 +73,48 @@ test "day13_part2" {
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    const num = parseInt(usize, input, 10) catch unreachable;
+    var membuffer: [6000000]u8 = undefined;
+    var alloc_impl = std.heap.FixedBufferAllocator.init(&membuffer);
+    const alloc = alloc_impl.allocator();
+
+    var queue: [500][2]usize = undefined;
+    var qstart: usize = 0;
+    var qend: usize = 1;
+
+    var map = Map([2]usize, void).init(alloc);
+
+    map.put(.{ 1, 1 }, {}) catch unreachable;
+    queue[0] = .{ 1, 1 };
+
+    var steps: usize = 0;
+    var nextstep: usize = 1;
+    var count: usize = 0;
+    while (qstart != qend) : (qstart += 1) {
+        if (qstart == queue.len) qstart = 0;
+        if (qstart == nextstep) {
+            steps += 1;
+            nextstep = qend;
+        }
+        count += 1;
+        if (steps == 50) continue;
+        if (steps > 50) break;
+
+        const pos = queue[qstart];
+        for ([_][2]usize{ .{ pos[0] + 1, pos[1] }, .{ pos[0], pos[1] + 1 }, .{ pos[0] -| 1, pos[1] }, .{ pos[0], pos[1] -| 1 } }) |newpos| {
+            const e = map.getOrPut(newpos) catch unreachable;
+            if (!e.found_existing) {
+                if (posValid(num, newpos)) {
+                    queue[qend] = newpos;
+                    qend += 1;
+                    if (qend == queue.len) qend = 0;
+                    if (qend == qstart) unreachable;
+                }
+            }
+        }
+    }
+
+    return count;
 }
 
 pub fn main() !void {

@@ -16,9 +16,55 @@ test "day16_part1" {
     assert(res == 0);
 }
 
-pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+pub fn part1(input: []const u8) []u8 {
+    var outbuffer: [272]u1 = undefined;
+    var holdbuffer: [272]u1 = undefined;
+    var end: usize = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '0' => {
+                outbuffer[end] = 0;
+                end += 1;
+            },
+            '1' => {
+                outbuffer[end] = 1;
+                end += 1;
+            },
+            else => unreachable,
+        }
+    }
+
+    while (end < 272) {
+        @memcpy(holdbuffer[0..end], outbuffer[0..end]);
+        std.mem.reverse(u1, holdbuffer[0..end]);
+        for (0..end) |i| {
+            holdbuffer[i] +%= 1;
+        }
+        outbuffer[end] = 0;
+        const newend = @min(end * 2 + 1, 272);
+        const newlen = newend - end - 1;
+        @memcpy(outbuffer[end + 1 .. newend], holdbuffer[0..newlen]);
+        end = newend;
+    }
+
+    while (end % 2 == 0) {
+        end /= 2;
+        for (0..end) |i| {
+            const a = outbuffer[i * 2];
+            const b = outbuffer[i * 2 + 1];
+            holdbuffer[i] = if (a == b) 1 else 0;
+        }
+        @memcpy(outbuffer[0..end], holdbuffer[0..end]);
+    }
+
+    const out: []u8 = gpa.alloc(u8, end) catch unreachable;
+
+    for (0..end) |i| {
+        out[i] = @as(u8, outbuffer[i]) + '0';
+    }
+
+    return out;
 }
 
 test "day16_part2" {
@@ -26,9 +72,55 @@ test "day16_part2" {
     assert(res == 0);
 }
 
-pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+pub fn part2(input: []const u8) []u8 {
+    var outbuffer: []u1 = gpa.alloc(u1, 35651584) catch unreachable;
+    var holdbuffer: []u1 = gpa.alloc(u1, 35651584) catch unreachable;
+    var end: usize = 0;
+
+    for (input) |c| {
+        switch (c) {
+            '0' => {
+                outbuffer[end] = 0;
+                end += 1;
+            },
+            '1' => {
+                outbuffer[end] = 1;
+                end += 1;
+            },
+            else => unreachable,
+        }
+    }
+
+    while (end < 35651584) {
+        @memcpy(holdbuffer[0..end], outbuffer[0..end]);
+        std.mem.reverse(u1, holdbuffer[0..end]);
+        for (0..end) |i| {
+            holdbuffer[i] +%= 1;
+        }
+        outbuffer[end] = 0;
+        const newend = @min(end * 2 + 1, 35651584);
+        const newlen = newend - end - 1;
+        @memcpy(outbuffer[end + 1 .. newend], holdbuffer[0..newlen]);
+        end = newend;
+    }
+
+    while (end % 2 == 0) {
+        end /= 2;
+        for (0..end) |i| {
+            const a = outbuffer[i * 2];
+            const b = outbuffer[i * 2 + 1];
+            holdbuffer[i] = if (a == b) 1 else 0;
+        }
+        @memcpy(outbuffer[0..end], holdbuffer[0..end]);
+    }
+
+    const out: []u8 = gpa.alloc(u8, end) catch unreachable;
+
+    for (0..end) |i| {
+        out[i] = @as(u8, outbuffer[i]) + '0';
+    }
+
+    return out;
 }
 
 pub fn main() !void {
@@ -38,8 +130,8 @@ pub fn main() !void {
     const res2 = part2(data);
     const time2 = timer.lap();
     print("Day 16:\n", .{});
-    print("\tPart 1: {}\n", .{res});
-    print("\tPart 2: {}\n", .{res2});
+    print("\tPart 1: {s}\n", .{res});
+    print("\tPart 2: {s}\n", .{res2});
     print("\tTime: {}ns\n", .{time});
     print("\tTime: {}ns\n", .{time2});
 }

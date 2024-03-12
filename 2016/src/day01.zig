@@ -9,26 +9,70 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day01.txt");
-const testdata = "";
+const testdata = "R5, L5, R5, R3";
+const testdata2 = "R8, R4, R4, R8";
 
 test "day01_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 12);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var words = splitSeq(u8, input, ", ");
+    var x: isize = 0;
+    var y: isize = 0;
+    var dir: u2 = 0;
+    const offsets = [4][2]isize{ .{ 0, 1 }, .{ 1, 0 }, .{ 0, -1 }, .{ -1, 0 } };
+    while (words.next()) |word| {
+        const turn = word[0];
+        const dist = parseInt(isize, word[1..], 10) catch unreachable;
+        if (turn == 'R') {
+            dir +%= 1;
+        } else {
+            dir -%= 1;
+        }
+        x += dist * offsets[dir][0];
+        y += dist * offsets[dir][1];
+    }
+
+    return @abs(x) + @abs(y);
 }
 
 test "day01_part2" {
-    const res = part2(testdata);
-    assert(res == 0);
+    const res = part2(testdata2);
+    assert(res == 4);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var membuffer: [2000000]u8 = undefined;
+    var alloc_impl = std.heap.FixedBufferAllocator.init(&membuffer);
+    const alloc = alloc_impl.allocator();
+    var words = splitSeq(u8, input, ", ");
+    var x: isize = 0;
+    var y: isize = 0;
+    var dir: u2 = 0;
+    const offsets = [4][2]isize{ .{ 0, 1 }, .{ 1, 0 }, .{ 0, -1 }, .{ -1, 0 } };
+    var map = std.AutoHashMap([2]isize, void).init(alloc);
+    map.put(.{ 0, 0 }, {}) catch unreachable;
+    while (words.next()) |word| {
+        const turn = word[0];
+        const dist = parseInt(usize, word[1..], 10) catch unreachable;
+        if (turn == 'R') {
+            dir +%= 1;
+        } else {
+            dir -%= 1;
+        }
+        for (0..dist) |_| {
+            x += offsets[dir][0];
+            y += offsets[dir][1];
+            const e = map.getOrPut(.{ x, y }) catch unreachable;
+            if (e.found_existing) {
+                return @abs(x) + @abs(y);
+            }
+        }
+    }
+
+    unreachable;
 }
 
 pub fn main() !void {

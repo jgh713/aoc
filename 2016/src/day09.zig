@@ -12,23 +12,61 @@ pub const data = @embedFile("data/day09.txt");
 const testdata = "";
 
 test "day09_part1" {
-    const res = part1(testdata);
-    assert(res == 0);
+    assert(part1("ADVENT") == 6);
+    assert(part1("A(1x5)BC") == 7);
+    assert(part1("(3x3)XYZ") == 9);
+    assert(part1("A(2x2)BCD(2x2)EFG") == 11);
+    assert(part1("(6x1)(1x3)A") == 6);
+    assert(part1("X(8x2)(3x3)ABCY") == 18);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var start: usize = 0;
+    var count: usize = 0;
+    while (true) {
+        const left = std.mem.indexOfScalarPos(u8, input, start, '(') orelse break;
+        count += left - start;
+        const right = std.mem.indexOfScalarPos(u8, input, left, ')').?;
+        const word = input[left + 1 .. right];
+        const x = indexOf(u8, word, 'x').?;
+        const len = @min(parseInt(usize, word[0..x], 10) catch unreachable, input.len - right -| 1);
+        const rep = parseInt(usize, word[x + 1 ..], 10) catch unreachable;
+        start = right + len + 1;
+        //print("startslice now: {s}\n", .{input[start..]});
+        count += len * rep;
+    }
+    count += input.len - start;
+    //print("input: {s}\n", .{input});
+    //print("count: {}\n", .{count});
+    return count;
 }
 
 test "day09_part2" {
-    const res = part2(testdata);
-    assert(res == 0);
+    assert(part2("(3x3)XYZ") == 9);
+    assert(part2("X(8x2)(3x3)ABCY") == 20);
+    assert(part2("(27x12)(20x12)(13x14)(7x10)(1x12)A") == 241920);
+    assert(part2("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN") == 445);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var start: usize = 0;
+    var count: usize = 0;
+    while (true) {
+        const left = std.mem.indexOfScalarPos(u8, input, start, '(') orelse break;
+        count += left - start;
+        const right = std.mem.indexOfScalarPos(u8, input, left, ')').?;
+        const word = input[left + 1 .. right];
+        const x = indexOf(u8, word, 'x').?;
+        const len = @min(parseInt(usize, word[0..x], 10) catch unreachable, input.len - right -| 1);
+        const rep = parseInt(usize, word[x + 1 ..], 10) catch unreachable;
+        start = right + len + 1;
+        //print("startslice now: {s}\n", .{input[start..]});
+        count += part2(input[right + 1 .. right + len + 1]) * rep;
+    }
+    count += input.len - start;
+    //print("input: {s}\n", .{input});
+    //print("count: {}\n", .{count});
+    return count;
 }
 
 pub fn main() !void {

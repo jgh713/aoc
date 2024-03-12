@@ -9,26 +9,38 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day19.txt");
-const testdata = "";
+const testdata = "5";
 
 test "day19_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(res == 3);
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var val = parseInt(usize, input, 10) catch unreachable;
+    const offset = @clz(val);
+    const flip = @as(usize, 1) << @intCast(64 - offset - 1);
+    val &= ~flip;
+    val <<= 1;
+    val |= 1;
+
+    return val;
 }
 
 test "day19_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(res == 2);
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    const val = parseInt(usize, input, 10) catch unreachable;
+    var offset: usize = 1;
+
+    while (offset * 3 < val) {
+        offset *= 3;
+    }
+
+    return val - offset;
 }
 
 pub fn main() !void {

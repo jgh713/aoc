@@ -9,26 +9,72 @@ const util = @import("util.zig");
 const gpa = util.gpa;
 
 pub const data = @embedFile("data/day06.txt");
-const testdata = "";
+const testdata = "eedadn\r\ndrvtee\r\neandsr\r\nraavrd\r\natevrs\r\ntsrnev\r\nsdttsa\r\nrasrtv\r\nnssdts\r\nntnada\r\nsvetve\r\ntesnvt\r\nvntsnd\r\nvrdear\r\ndvrsen\r\nenarar";
 
 test "day06_part1" {
     const res = part1(testdata);
-    assert(res == 0);
+    assert(std.mem.eql(u8, res, "easter"));
 }
 
-pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+pub fn part1(input: []const u8) []u8 {
+    var counts: [9][26]usize = undefined;
+    for (&counts) |*count| {
+        @memset(count, 0);
+    }
+    var lines = splitSeq(u8, input, "\r\n");
+    const width = lines.peek().?.len;
+    while (lines.next()) |line| {
+        for (line, 0..) |c, ci| {
+            counts[ci][c - 'a'] += 1;
+        }
+    }
+
+    const out = gpa.alloc(u8, width) catch unreachable;
+    for (counts[0..width], 0..) |col, coli| {
+        var max: usize = 0;
+        var maxc: u8 = 0;
+        for (col, 0..) |c, ci| {
+            if (c > max) {
+                max = c;
+                maxc = 'a' + @as(u8, @intCast(ci));
+            }
+        }
+        out[coli] = maxc;
+    }
+    return out;
 }
 
 test "day06_part2" {
     const res = part2(testdata);
-    assert(res == 0);
+    assert(std.mem.eql(u8, res, "advent"));
 }
 
-pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+pub fn part2(input: []const u8) []u8 {
+    var counts: [9][26]usize = undefined;
+    for (&counts) |*count| {
+        @memset(count, 0);
+    }
+    var lines = splitSeq(u8, input, "\r\n");
+    const width = lines.peek().?.len;
+    while (lines.next()) |line| {
+        for (line, 0..) |c, ci| {
+            counts[ci][c - 'a'] += 1;
+        }
+    }
+
+    const out = gpa.alloc(u8, width) catch unreachable;
+    for (counts[0..width], 0..) |col, coli| {
+        var min: usize = std.math.maxInt(usize);
+        var minc: u8 = 0;
+        for (col, 0..) |c, ci| {
+            if (c > 0 and c < min) {
+                min = c;
+                minc = 'a' + @as(u8, @intCast(ci));
+            }
+        }
+        out[coli] = minc;
+    }
+    return out;
 }
 
 pub fn main() !void {
@@ -38,8 +84,8 @@ pub fn main() !void {
     const res2 = part2(data);
     const time2 = timer.lap();
     print("Day 06:\n", .{});
-    print("\tPart 1: {}\n", .{res});
-    print("\tPart 2: {}\n", .{res2});
+    print("\tPart 1: {s}\n", .{res});
+    print("\tPart 2: {s}\n", .{res2});
     print("\tTime: {}ns\n", .{time});
     print("\tTime: {}ns\n", .{time2});
 }

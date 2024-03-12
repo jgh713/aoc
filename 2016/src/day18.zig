@@ -17,8 +17,44 @@ test "day18_part1" {
 }
 
 pub fn part1(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var row: [100]u1 = undefined;
+    var hold: [100]u1 = undefined;
+    var count: usize = 0;
+
+    for (input, 0..) |c, i| {
+        switch (c) {
+            '.' => {
+                row[i] = 1;
+                count += 1;
+            },
+            '^' => row[i] = 0,
+            else => unreachable,
+        }
+    }
+
+    var rows: usize = 1;
+
+    while (rows < 40) {
+        for (0..100) |i| {
+            const val: u1 = blk: {
+                if (i == 0) {
+                    break :blk row[i + 1];
+                } else if (i == 99) {
+                    break :blk row[i - 1];
+                } else {
+                    if (row[i - 1] == row[i + 1]) {
+                        break :blk 1;
+                    }
+                    break :blk 0;
+                }
+            };
+            hold[i] = val;
+            count += val;
+        }
+        row = hold;
+        rows += 1;
+    }
+    return count;
 }
 
 test "day18_part2" {
@@ -27,8 +63,44 @@ test "day18_part2" {
 }
 
 pub fn part2(input: []const u8) usize {
-    _ = input;
-    return 0;
+    var row: [100]u1 = undefined;
+    var hold: [100]u1 = undefined;
+    var count: usize = 0;
+
+    for (input, 0..) |c, i| {
+        switch (c) {
+            '.' => {
+                row[i] = 1;
+                count += 1;
+            },
+            '^' => row[i] = 0,
+            else => unreachable,
+        }
+    }
+
+    var rows: usize = 1;
+
+    while (rows < 400000) {
+        for (0..100) |i| {
+            const val: u1 = blk: {
+                if (i == 0) {
+                    break :blk row[i + 1];
+                } else if (i == 99) {
+                    break :blk row[i - 1];
+                } else {
+                    if (row[i - 1] == row[i + 1]) {
+                        break :blk 1;
+                    }
+                    break :blk 0;
+                }
+            };
+            hold[i] = val;
+            count += val;
+        }
+        row = hold;
+        rows += 1;
+    }
+    return count;
 }
 
 pub fn main() !void {
